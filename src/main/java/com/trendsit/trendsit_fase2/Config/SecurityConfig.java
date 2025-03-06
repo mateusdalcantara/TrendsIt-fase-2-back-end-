@@ -1,4 +1,4 @@
-package com.trendsit.trendsit_fase2;
+package com.trendsit.trendsit_fase2.Config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
