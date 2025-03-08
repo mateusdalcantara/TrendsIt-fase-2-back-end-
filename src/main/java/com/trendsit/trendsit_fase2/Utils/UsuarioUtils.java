@@ -7,8 +7,11 @@ import org.springframework.stereotype.Service;
 @Service
 public class UsuarioUtils {
 
-    public UsuarioDTO toDTO (Usuario usuario){
+    public UsuarioDTO toDTO(Usuario usuario) {
         return new UsuarioDTO(
+                usuario.getId(),
                 usuario.getNome(),
                 usuario.getEmail(),
-                usuario.getCurso());}}
+                usuario.getCurso());
+    }
+}

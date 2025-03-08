@@ -1,10 +1,14 @@
 package com.trendsit.trendsit_fase2.Model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
-
 
 @Entity
 @Table(name = "usuario")
@@ -28,6 +32,7 @@ public class Usuario {
 
     @Column(name = "role")
     private String role;
+
     public void setHash(String senha) {
         this.senhaHash = new BCryptPasswordEncoder().encode(senha);
     }
@@ -35,8 +40,16 @@ public class Usuario {
     @Column(name = "d_criacao", nullable = false)
     private LocalDateTime d_criacao;
 
-    public Usuario(){};
+    public Usuario() {
+    }
 
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
 
     public String getNome() {
         return nome;
