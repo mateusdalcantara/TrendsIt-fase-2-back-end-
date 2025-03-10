@@ -1,6 +1,6 @@
-package com.trendsit.trendsit_fase2.Controller;
+package com.trendsit.trendsit_fase2.controller;
 
-import com.trendsit.trendsit_fase2.Service.UsuarioService;
+import com.trendsit.trendsit_fase2.service.UsuarioService;
 import com.trendsit.trendsit_fase2.dto.RegisterDTO;
 import com.trendsit.trendsit_fase2.dto.UsuarioDTO;
 import org.springframework.beans.factory.annotation.Autowired;

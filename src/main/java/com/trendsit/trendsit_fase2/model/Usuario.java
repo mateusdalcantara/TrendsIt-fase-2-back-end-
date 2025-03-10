@@ -1,14 +1,12 @@
-package com.trendsit.trendsit_fase2.Model;
+package com.trendsit.trendsit_fase2.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import com.trendsit.trendsit_fase2.service.Role;
+import jakarta.persistence.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import java.time.LocalDateTime;
+
+import static com.trendsit.trendsit_fase2.service.Role.USUARIO;
 
 @Entity
 @Table(name = "usuario")
@@ -31,7 +29,8 @@ public class Usuario {
     private String senhaHash;
 
     @Column(name = "role")
-    private String role;
+    @Enumerated(EnumType.STRING)
+    private Role role = USUARIO;
 
     public void setHash(String senha) {
         this.senhaHash = new BCryptPasswordEncoder().encode(senha);
@@ -83,12 +82,12 @@ public class Usuario {
         this.senhaHash = senhaHash;
     }
 
-    public String getRole() {
-        return role;
+    public Role getRole(Role role) {
+        return USUARIO ;
     }
 
     public void setRole(String role) {
-        this.role = role;
+        this.role = Role.valueOf(role);
     }
 
     public LocalDateTime getD_criacao() {

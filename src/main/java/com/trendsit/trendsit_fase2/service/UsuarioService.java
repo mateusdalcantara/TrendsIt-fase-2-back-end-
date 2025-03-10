@@ -1,8 +1,10 @@
-package com.trendsit.trendsit_fase2.Service;
+package com.trendsit.trendsit_fase2.service;
 
-import com.trendsit.trendsit_fase2.Model.Usuario;
-import com.trendsit.trendsit_fase2.Repository.UsuarioRepository;
-import com.trendsit.trendsit_fase2.Utils.UsuarioUtils;
+import com.trendsit.trendsit_fase2.exception.UsuarioJaExisteException;
+import com.trendsit.trendsit_fase2.exception.UsuarioNaoEncontradoException;
+import com.trendsit.trendsit_fase2.model.Usuario;
+import com.trendsit.trendsit_fase2.repository.UsuarioRepository;
+import com.trendsit.trendsit_fase2.util.UsuarioUtils;
 import com.trendsit.trendsit_fase2.dto.RegisterDTO;
 import com.trendsit.trendsit_fase2.dto.UsuarioDTO;
 import org.springframework.stereotype.Service;
@@ -28,13 +30,15 @@ public class UsuarioService {
     }
 
     public UsuarioDTO saveUser(RegisterDTO registerDTO) {
+        if (usuarioRepository.existsByEmail(registerDTO.Email())){
+            throw new UsuarioJaExisteException();//retorna um salso negativo
+        }
         Usuario usuario = new Usuario();
         usuario.setNome(registerDTO.Nome());
         usuario.setEmail(registerDTO.Email());
         usuario.setCurso(registerDTO.Curso());
         usuario.setHash(registerDTO.Senha());
         usuario.setD_criacao(LocalDateTime.now());
-        usuario.setRole("Aluno");
         usuarioRepository.save(usuario);
         return usuarioUtils.toDTO(usuario);
     }
@@ -46,10 +50,11 @@ public class UsuarioService {
             usuario.setNome(usuarioDTO.Nome());
             usuario.setEmail(usuarioDTO.Email());
             usuario.setCurso(usuarioDTO.Curso());
+            usuario.setD_criacao(LocalDateTime.now());
             usuarioRepository.save(usuario);
             return usuarioUtils.toDTO(usuario);
         } else {
-            throw new RuntimeException("Usuário não encontrado");
+            throw new UsuarioNaoEncontradoException();
         }
     }
 
@@ -58,7 +63,7 @@ public class UsuarioService {
         if (optionalUsuario.isPresent()) {
             return usuarioUtils.toDTO(optionalUsuario.get());
         } else {
-            throw new RuntimeException("Usuário não encontrado");
+            throw new UsuarioNaoEncontradoException();
         }
     }
 
