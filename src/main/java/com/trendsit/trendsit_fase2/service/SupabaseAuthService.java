@@ -7,6 +7,9 @@ import org.springframework.web.client.RestTemplate;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Serviço para integração com a API de autenticação do Supabase.
+ */
 @Service
 public class SupabaseAuthService {
 
@@ -18,42 +21,43 @@ public class SupabaseAuthService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // Registrar usuário
     public ResponseEntity<String> registro(String email, String password) {
-        String url = supabaseUrl + "/auth/v1/signup";
-        return makeAuthRequest(url, email, password);
+        return fazerRequisicaoAutenticacao("/auth/v1/signup", email, password);
     }
 
-    // Login do usuário
     public ResponseEntity<String> login(String email, String password) {
-        String url = supabaseUrl + "/auth/v1/token?grant_type=password";
-        return makeAuthRequest(url, email, password);
+        return fazerRequisicaoAutenticacao("/auth/v1/token?grant_type=password", email, password);
     }
 
-    // Recuperação de senha
     public ResponseEntity<String> resetPassword(String email) {
-        String url = supabaseUrl + "/auth/v1/recover";
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("apikey", supabaseKey);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
+        HttpHeaders headers = criarHeaders();
         Map<String, Object> body = new HashMap<>();
         body.put("email", email);
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-        return restTemplate.postForEntity(url, request, String.class);
+        return restTemplate.postForEntity(
+                supabaseUrl + "/auth/v1/recover",
+                new HttpEntity<>(body, headers),
+                String.class
+        );
     }
 
-    private ResponseEntity<String> makeAuthRequest(String url, String email, String password) {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("apikey", supabaseKey);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
+    private ResponseEntity<String> fazerRequisicaoAutenticacao(String endpoint, String email, String password) {
+        HttpHeaders headers = criarHeaders();
         Map<String, Object> body = new HashMap<>();
         body.put("email", email);
         body.put("password", password);
 
-        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-        return restTemplate.postForEntity(url, request, String.class);
+        return restTemplate.postForEntity(
+                supabaseUrl + endpoint,
+                new HttpEntity<>(body, headers),
+                String.class
+        );
+    }
+
+    private HttpHeaders criarHeaders() {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("apikey", supabaseKey);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
     }
 }

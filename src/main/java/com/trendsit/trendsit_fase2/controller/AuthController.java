@@ -7,6 +7,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 
+/**
+ * Controlador para operações de autenticação:
+ * - Registro de usuários
+ * - Login
+ * - Recuperação de senha
+ */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -17,40 +23,38 @@ public class AuthController {
         this.supabaseAuthService = supabaseAuthService;
     }
 
-    // Registro
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody AuthRequest request) {
         if (request.getEmail() == null || request.getPassword() == null) {
-            return ResponseEntity.badRequest().body("E-mail e senha são obrigatórios.");
+            return ResponseEntity.badRequest().body("Credenciais inválidas");
         }
         return supabaseAuthService.registro(request.getEmail(), request.getPassword());
     }
 
-    // Login
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         try {
-            ResponseEntity<String> response = supabaseAuthService.login(request.getEmail(), request.getPassword());
-            return ResponseEntity.ok(response.getBody());
+            return supabaseAuthService.login(request.getEmail(), request.getPassword());
         } catch (HttpClientErrorException e) {
-            if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
-                String errorResponse = e.getResponseBodyAsString();
-                if (errorResponse.contains("email_not_confirmed")) {
-                    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                            .body("Confirme seu e-mail antes de fazer login. Verifique sua caixa de entrada.");
-                }
-            }
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno.");
+            return tratarErrosAutenticacao(e);
         }
     }
 
-    // Recuperação de senha
+    private ResponseEntity<?> tratarErrosAutenticacao(HttpClientErrorException e) {
+        if (e.getStatusCode() == HttpStatus.BAD_REQUEST) {
+            String errorBody = e.getResponseBodyAsString();
+            if (errorBody.contains("email_not_confirmed")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Confirme seu e-mail antes de fazer login");
+            }
+        }
+        return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
+
     @PostMapping("/recover")
     public ResponseEntity<String> recoverPassword(@RequestBody AuthRequest request) {
         if (request.getEmail() == null) {
-            return ResponseEntity.badRequest().body("E-mail é obrigatório.");
+            return ResponseEntity.badRequest().body("E-mail é obrigatório");
         }
         return supabaseAuthService.resetPassword(request.getEmail());
     }
