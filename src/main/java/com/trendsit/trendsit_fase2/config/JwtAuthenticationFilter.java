@@ -1,12 +1,10 @@
 package com.trendsit.trendsit_fase2.config;
 
 import com.trendsit.trendsit_fase2.model.Profile;
-import com.trendsit.trendsit_fase2.model.ProfileRole;
-import com.trendsit.trendsit_fase2.repository.ProfileRepository;
+import com.trendsit.trendsit_fase2.service.ProfileService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -14,29 +12,32 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
-/**
- * Filtro JWT para autenticação de requisições.
- * Responsável por:
- * - Extrair e validar tokens JWT
- * - Criar perfis automaticamente para novos usuários
- * - Configurar o contexto de segurança do Spring
- */
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private static final String SECRET_KEY = "Ev2zD3evxr64xjzxUAyxH8BeZWz3y3h7kd+FacCxMtVbqmXStvTYhSOPkJg7iWKxm0azpypls/prXbwk4opqHg==";
-    private final ProfileRepository profileRepository;
+    private final ProfileService profileService;
+    private final String supabaseSecret;
 
-    public JwtAuthenticationFilter(ProfileRepository profileRepository) {
-        this.profileRepository = profileRepository;
+    public JwtAuthenticationFilter(ProfileService profileService, String supabaseSecret) {
+        this.profileService = profileService;
+        this.supabaseSecret = supabaseSecret;
+    }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/v3/api-docs")
+                || path.startsWith("/swagger-ui")
+                || path.startsWith("/auth/login")
+                || path.startsWith("/auth/register");
     }
 
     @Override
@@ -45,52 +46,43 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         String token = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (token != null && token.startsWith("Bearer ")) {
-            token = token.substring(7);
-            try {
+        try {
+            if (token != null && token.startsWith("Bearer ")) {
+                token = token.substring(7);
+
                 Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(SECRET_KEY.getBytes(StandardCharsets.UTF_8))
+                        .setSigningKey(supabaseSecret.getBytes(StandardCharsets.UTF_8))
                         .build()
                         .parseClaimsJws(token)
                         .getBody();
 
-                // Processamento do token
-                String userId = claims.getSubject();
+                UUID userId = UUID.fromString(claims.getSubject());
                 System.out.println("Usuário autenticado: " + userId);
 
-                // Criação automática de perfil se necessário
-                if (!profileRepository.existsById(UUID.fromString(userId))) {
-                    criarPerfilPadrao(userId);
-                }
+                Profile profile = profileService.findById(userId)
+                        .orElseThrow(() -> new RuntimeException("Profile not found"));
 
-                // Configuração da autenticação
-                Profile profile = profileRepository.findById(UUID.fromString(userId)).orElseThrow();
-                configurarAutenticacao(profile);
+                // Correct placement of authorities list
+                List<GrantedAuthority> authorities = List.of(
+                        new SimpleGrantedAuthority("ROLE_" + profile.getRole().name())
+                );
 
-            } catch (ExpiredJwtException e) {
-                System.out.println("Token expirado. Faça login novamente.");
-            } catch (Exception e) {
-                System.out.println("Erro ao processar o token: " + e.getMessage());
+                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
+                        profile,
+                        null,
+                        authorities
+                );
+                SecurityContextHolder.getContext().setAuthentication(auth);
             }
+        } catch (ExpiredJwtException e) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado. Faça login novamente.");
+            return;
+        } catch (Exception e) {
+            System.out.println("Erro ao processar o token: " + e.getMessage());
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Autenticação inválida");
+            return;
         }
+
         filterChain.doFilter(request, response);
-    }
-
-    private void criarPerfilPadrao(String userId) {
-        Profile profile = new Profile();
-        profile.setId(UUID.fromString(userId));
-        profile.setRole(ProfileRole.USER);
-        profile.setIdade(0);
-        profile.setCurso("Não informado");
-        profile.setCreatedAt(LocalDateTime.now());
-        profileRepository.save(profile);
-        System.out.println("Novo perfil criado para: " + userId);
-    }
-
-    private void configurarAutenticacao(Profile profile) {
-        Collection<? extends GrantedAuthority> authorities = profile.getAuthorities();
-        UsernamePasswordAuthenticationToken authentication =
-                new UsernamePasswordAuthenticationToken(profile, null, authorities);
-        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 }

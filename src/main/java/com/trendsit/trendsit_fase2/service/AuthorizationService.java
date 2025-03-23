@@ -10,12 +10,16 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthorizationService implements UserDetailsService {
 
-    ProfileRepository profileRepository;
+    private final ProfileRepository profileRepository;
 
     @Autowired
-    AuthorizationService(ProfileRepository profileRepository){this.profileRepository = profileRepository;}
+    public AuthorizationService(ProfileRepository profileRepository) {
+        this.profileRepository = profileRepository;
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return profileRepository.findByNome(username);
+        return profileRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + username));
     }
 }
