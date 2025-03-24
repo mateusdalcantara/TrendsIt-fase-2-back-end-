@@ -13,6 +13,8 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 
+import java.util.List;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -35,9 +37,18 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    // config.setAllowedOrigins(List.of("https://your-frontend-domain.com"));
-                    // config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE"));
-                    // config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+                    // Libere todas as origens temporariamente para testes
+                    config.setAllowedOrigins(List.of(
+                            "https://trendit.bubbleapps.io",
+                            "http://trendsitone.fly.dev",
+                            "http://localhost:8080" // Para testes locais
+                    ));
+                    // Adicione métodos necessários
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+                    // Permita todos os headers
+                    config.setAllowedHeaders(List.of("*"));
+                    // Permita credenciais
+                    config.setAllowCredentials(true);
                     return config;
                 }))
                 .sessionManagement(session -> session
@@ -50,13 +61,13 @@ public class SecurityConfig {
                                 "/webjars/**",
                                 "/swagger-ui.html",
                                 "/auth/login",
-                                "/auth/register"
-                        ).permitAll()
-                        .requestMatchers("/admin-only").hasRole("ADMIN") // Admin-only endpoint
-                        .requestMatchers(
+                                "/auth/register",
+                                "/common-area",
                                 "/api/post",
-                                "/api/post/{postId}/comment"
-                        ).authenticated()
+                                "/api/post/{postId}/comment",
+                                "/protected-endpoint"
+                        ).permitAll()
+                        .requestMatchers("/admin-only").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
