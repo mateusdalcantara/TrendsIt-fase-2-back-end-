@@ -1,5 +1,7 @@
 package com.trendsit.trendsit_fase2.config;
 
+import com.trendsit.trendsit_fase2.exception.CustomAccessDeniedHandler;
+import com.trendsit.trendsit_fase2.exception.CustomAuthenticationEntryPoint;
 import com.trendsit.trendsit_fase2.service.ProfileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -23,13 +25,22 @@ public class SecurityConfig {
     private final ProfileService profileService;
     private final String supabaseSecret;
 
-    public SecurityConfig(
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
+
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+
+    public SecurityConfig
+            (
             ProfileService profileService,
-            @Value("${supabase.jwt.secret}") String supabaseSecret
-    ) {
+            @Value("${supabase.jwt.secret}") String supabaseSecret,
+            CustomAccessDeniedHandler customAccessDeniedHandler,
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
         this.profileService = profileService;
         this.supabaseSecret = supabaseSecret;
+        this.customAccessDeniedHandler = customAccessDeniedHandler;
+        this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -55,6 +66,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
+                                "/auth/check-auth",
                                 "/swagger-ui/**",
                                 "/v3/api-docs/**",
                                 "/swagger-resources/**",
@@ -65,15 +77,16 @@ public class SecurityConfig {
                                 "/common-area",
                                 "/api/post",
                                 "/api/post/{postId}/comment",
-                                "/protected-endpoint"
+                                "/protected-endpoint",
+                                "/profiles"
                         ).permitAll()
-                        .requestMatchers("/admin-only").hasRole("ADMIN")
+                        .requestMatchers("/admin-only").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
                         new JwtAuthenticationFilter(profileService, supabaseSecret),
                         UsernamePasswordAuthenticationFilter.class
-                );
+                ).exceptionHandling(exception -> exception.accessDeniedHandler(customAccessDeniedHandler).authenticationEntryPoint(customAuthenticationEntryPoint));
 
         return http.build();
     }

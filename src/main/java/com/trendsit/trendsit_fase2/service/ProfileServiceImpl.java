@@ -1,14 +1,17 @@
 package com.trendsit.trendsit_fase2.service;
 
 import com.trendsit.trendsit_fase2.dto.AuthProfileDTO;
-import com.trendsit.trendsit_fase2.dto.ProfileRequest;
+import com.trendsit.trendsit_fase2.dto.ProfileRequestDTO;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.model.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.ProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
@@ -48,7 +51,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public Profile criarPerfil(ProfileRequest request) {
+    public Profile criarPerfil(ProfileRequestDTO request) {
         Profile profile = new Profile();
         profile.setUsername(request.getUsername());
         profile.setIdade(request.getIdade());
@@ -63,7 +66,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
-    public Profile updateProfile(UUID profileId, ProfileRequest request) {
+    public Profile updateProfile(UUID profileId, ProfileRequestDTO request) {
         Profile profile = profileRepository.findById(profileId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
@@ -81,4 +84,20 @@ public class ProfileServiceImpl implements ProfileService {
         }
         profileRepository.deleteById(profileId);
     }
-}
+
+    @Override
+    public ProfileRequestDTO convertToDto(Profile profile) {
+        ProfileRequestDTO dto = new ProfileRequestDTO();
+        dto.setUsername(profile.getUsername());
+        dto.setIdade(profile.getIdade());
+        dto.setCurso(profile.getCurso());
+        return dto;
+    }
+
+    @Override
+    public List<ProfileRequestDTO> findAllProfiles() {
+        List<Profile> profiles = profileRepository.findAll();
+        return profiles.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }}

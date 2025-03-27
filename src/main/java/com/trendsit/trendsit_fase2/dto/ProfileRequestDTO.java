@@ -9,7 +9,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class ProfileRequest {
+public class ProfileRequestDTO {
     @NotBlank(message = "Username é obrigatório")
     private String username;
     private Integer idade;

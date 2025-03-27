@@ -37,7 +37,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/auth/login")
-                || path.startsWith("/auth/register");
+                || path.startsWith("/auth/register")
+                || path.startsWith("/auth/check-auth");
     }
 
     @Override
@@ -64,7 +65,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // Correct placement of authorities list
                 List<GrantedAuthority> authorities = List.of(
-                        new SimpleGrantedAuthority("ROLE_" + profile.getRole().name())
+                        new SimpleGrantedAuthority("ROLE_" + profile.getRole().name().toUpperCase())
                 );
 
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
