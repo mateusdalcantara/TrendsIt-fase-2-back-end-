@@ -1,8 +1,10 @@
 package com.trendsit.trendsit_fase2.service;
 
 import com.trendsit.trendsit_fase2.dto.AuthProfileDTO;
-import com.trendsit.trendsit_fase2.dto.ProfileRequest;
+import com.trendsit.trendsit_fase2.dto.ProfileRequestDTO;
 import com.trendsit.trendsit_fase2.model.Profile;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -11,8 +13,12 @@ public interface ProfileService {
     boolean existsById(UUID id);
     void createDefaultProfile(UUID userId);
     Profile createProfile(UUID userId, String username);
-    Profile criarPerfil(ProfileRequest request);
+    Profile criarPerfil(ProfileRequestDTO request);
     Optional<AuthProfileDTO> findAuthProfileById(UUID userId);
-    Profile updateProfile(UUID profileId, ProfileRequest request);
+    Profile updateProfile(UUID profileId, ProfileRequestDTO request);
     void deleteProfile(UUID profileId);
+
+    ProfileRequestDTO convertToDto(Profile profile);
+
+    List<ProfileRequestDTO> findAllProfiles();
 }
