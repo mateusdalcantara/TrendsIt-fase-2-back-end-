@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class ComentarioDto {
+public class ComentarioDTO {
     @NotBlank(message = "O conteúdo do comentário não pode estar vazio")
     private String conteudo;
 }

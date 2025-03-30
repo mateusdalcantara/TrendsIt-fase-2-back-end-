@@ -6,7 +6,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class PostagemDto {
+public class PostagemDTO {
     @NotBlank(message = "O título não pode estar vazio")
     private String titulo;
 

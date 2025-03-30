@@ -1,7 +1,7 @@
 package com.trendsit.trendsit_fase2.service;
 
-import com.trendsit.trendsit_fase2.dto.AuthProfileDTO;
-import com.trendsit.trendsit_fase2.dto.ProfileRequestDTO;
+
+import com.trendsit.trendsit_fase2.dto.*;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.model.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.ProfileRepository;
@@ -100,4 +100,43 @@ public class ProfileServiceImpl implements ProfileService {
         return profiles.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
-    }}
+    }
+
+    @Override
+    public List<ProfileAdminDTO> findAllForAdmin() {
+        List<Profile> profiles = profileRepository.findAll();
+        return profiles.stream()
+                .map(ProfileAdminDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProfilePublicoDTO> findAllPublicoProfiles() {
+        List<Profile> profiles = profileRepository.findAll();
+        return profiles.stream()
+                .map(ProfilePublicoDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public Profile updateUserRole(UUID userId, ProfileRole newRole) {
+        Profile profile = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
+        profile.setRole(newRole);
+        return profileRepository.save(profile);
+    }
+
+    @Override
+    public Profile atualizarPerfilAdmin(UUID userId, ProfileAdminUpdateDTO dto) {
+        Profile profile = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
+
+        profile.setUsername(dto.getUsername());
+        profile.setIdade(dto.getIdade());
+        profile.setCurso(dto.getCurso());
+        profile.setRole(dto.getRole());
+
+        return profileRepository.save(profile);
+    }
+
+}

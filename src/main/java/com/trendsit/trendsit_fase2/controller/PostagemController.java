@@ -1,6 +1,6 @@
 package com.trendsit.trendsit_fase2.controller;
 
-import com.trendsit.trendsit_fase2.dto.PostagemDto;
+import com.trendsit.trendsit_fase2.dto.PostagemDTO;
 import com.trendsit.trendsit_fase2.dto.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import com.trendsit.trendsit_fase2.model.Profile;
@@ -34,11 +34,27 @@ public class PostagemController {
         this.postagemService = postagemService;
     }
 
+    @PostMapping
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')") // Permite USER e ADMIN
+    public ResponseEntity<PostagemResponseDTO> createPost(
+            @Valid @RequestBody PostagemDTO postagemDto,
+            @AuthenticationPrincipal Profile profile
+    ) {
+        Postagem postagem = postagemService.createPost(postagemDto, profile.getId());
+        return ResponseEntity.ok(new PostagemResponseDTO(postagem));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PostagemResponseDTO>> getAllPosts() {
+        List<PostagemResponseDTO> posts = postagemService.findAllPosts();
+        return ResponseEntity.ok(posts);
+    }
 
     @PutMapping("/{postId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PostagemResponseDTO> updatePost(
             @PathVariable Long postId,
-            @Valid @RequestBody PostagemDto postagemDto,
+            @Valid @RequestBody PostagemDTO postagemDto,
             @AuthenticationPrincipal Profile currentUser
     ) {
         Postagem postagem = postagemService.findById(postId)
@@ -53,6 +69,7 @@ public class PostagemController {
     }
 
     @DeleteMapping("/{postId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
             @AuthenticationPrincipal Profile currentUser
@@ -66,21 +83,5 @@ public class PostagemController {
 
         postagemService.deletePost(postId);
         return ResponseEntity.noContent().build();
-    }
-
-    @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<PostagemResponseDTO> createPost(
-            @Valid @RequestBody PostagemDto postagemDto,
-            @AuthenticationPrincipal Profile profile
-    ) {
-        Postagem postagem = postagemService.createPost(postagemDto, profile.getId());
-        return ResponseEntity.ok(new PostagemResponseDTO(postagem));
-    }
-
-    @GetMapping
-    public ResponseEntity<List<PostagemResponseDTO>> getAllPosts() {
-        List<PostagemResponseDTO> posts = postagemService.findAllPosts();
-        return ResponseEntity.ok(posts);
     }
 }

@@ -1,16 +1,15 @@
 package com.trendsit.trendsit_fase2.controller;
 
-import com.trendsit.trendsit_fase2.dto.ComentarioDto;
+import com.trendsit.trendsit_fase2.dto.ComentarioDTO;
 import com.trendsit.trendsit_fase2.dto.ComentarioResponseDTO;
 import com.trendsit.trendsit_fase2.model.Comentario;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.service.ComentarioService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -34,9 +33,10 @@ public class ComentarioController {
     }
 
     @PostMapping
-    public ResponseEntity<Comentario> adicionarComentario(
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ComentarioResponseDTO> adicionarComentario(
             @PathVariable Long postId,
-            @Valid @RequestBody ComentarioDto comentarioDto,
+            @Valid @RequestBody ComentarioDTO comentarioDto,
             @AuthenticationPrincipal Profile profile
     ) {
         Comentario novoComentario = comentarioService.adicionarComentario(
@@ -44,48 +44,40 @@ public class ComentarioController {
                 profile.getId(),
                 postId
         );
-        return ResponseEntity.ok(novoComentario);
+        return ResponseEntity.ok(new ComentarioResponseDTO(novoComentario)); // Return DTO
     }
 
-    @PutMapping("/{comentarioId}")
-    public ResponseEntity<Comentario> updateComentario(
+    @PutMapping("/{commentId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<Comentario> atualizarComentario(
             @PathVariable Long postId,
-            @PathVariable Long comentarioId,
-            @Valid @RequestBody ComentarioDto comentarioDto,
-            @AuthenticationPrincipal Profile currentUser
+            @PathVariable Long commentId,
+            @Valid @RequestBody ComentarioDTO comentarioDto,
+            @AuthenticationPrincipal Profile profile
     ) {
-        Comentario comentario = comentarioService.findById(comentarioId)
-                .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
-
-        // Validate comment belongs to the post
-        if (!comentario.getPostagem().getId().equals(postId)) {
-            throw new IllegalArgumentException("Comentário não pertence ao post");
-        }
-
-        // Check ownership/admin
-        if (!comentarioService.isOwnerOrAdmin(comentario, currentUser.getId())) {
-            throw new AccessDeniedException("Acesso negado");
-        }
-
-        Comentario updatedComment = comentarioService.updateComentario(comentarioId, comentarioDto);
-        return ResponseEntity.ok(updatedComment);
+        Comentario comentarioAtualizado = comentarioService.updateComentario(
+                commentId,
+                postId,
+                comentarioDto,
+                profile.getId()
+        );
+        return ResponseEntity.ok(comentarioAtualizado);
     }
 
-    @DeleteMapping("/{comentarioId}")
-    public ResponseEntity<Void> deleteComentario(
+    @DeleteMapping("/{commentId}")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<Void> deletarComentario(
             @PathVariable Long postId,
-            @PathVariable Long comentarioId,
-            @AuthenticationPrincipal Profile currentUser
+            @PathVariable Long commentId,
+            @AuthenticationPrincipal Profile profile
     ) {
-        comentarioService.deleteComentario(postId, comentarioId, currentUser.getId());
+        comentarioService.deleteComentario(postId, commentId, profile.getId());
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/meus-comentarios")
-    public ResponseEntity<List<ComentarioResponseDTO>> getMyComments(
-            @AuthenticationPrincipal Profile currentUser
-    ) {
-        List<ComentarioResponseDTO> comentarios = comentarioService.findComentariosByAutorId(currentUser.getId());
+    @GetMapping
+    public ResponseEntity<List<ComentarioResponseDTO>> getComentarios(@PathVariable Long postId) {
+        List<ComentarioResponseDTO> comentarios = comentarioService.findByPostagemId(postId);
         return ResponseEntity.ok(comentarios);
     }
 }

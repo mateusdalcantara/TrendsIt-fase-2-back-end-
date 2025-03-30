@@ -1,9 +1,11 @@
 package com.trendsit.trendsit_fase2.controller;
 
+import com.trendsit.trendsit_fase2.dto.*;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.model.ProfileRole;
+import com.trendsit.trendsit_fase2.service.PostagemService;
 import com.trendsit.trendsit_fase2.service.ProfileService;
-import com.trendsit.trendsit_fase2.dto.ProfileRequestDTO;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
@@ -19,40 +21,64 @@ import java.util.UUID;
  * Requer autenticação para acesso.
  */
 
+@SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/profiles")
 public class ProfileController {
 
     private final ProfileService profileService;
+    private final PostagemService postagemService;
 
-    public ProfileController(ProfileService profileService) {
+
+    public ProfileController(ProfileService profileService, PostagemService postagemService) {
         this.profileService = profileService;
+        this.postagemService = postagemService;
     }
 
     @GetMapping
-    public ResponseEntity<List<ProfileRequestDTO>> obterPerfil(){
-        List<ProfileRequestDTO> profileRequestDTOS = profileService.findAllProfiles();
-        return ResponseEntity.ok(profileRequestDTOS);
+    public ResponseEntity<List<ProfilePublicoDTO>> obterPerfil() {
+        List<ProfilePublicoDTO> profiles = profileService.findAllPublicoProfiles();
+        return ResponseEntity.ok(profiles);
     }
+
+    @GetMapping("/admin/listar-usuarios")
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
-    public ResponseEntity<Profile> criarPerfil(@Valid @RequestBody ProfileRequestDTO request) {
-        Profile profile = profileService.criarPerfil(request);
-        return ResponseEntity.ok(profile);
+    public ResponseEntity<List<ProfileAdminDTO>> getAllUsersAdmin() {
+        List<ProfileAdminDTO> users = profileService.findAllForAdmin();
+        return ResponseEntity.ok(users);
     }
 
-    @PutMapping("/{profileId}")
-    public ResponseEntity<Profile> updateProfile(
-            @PathVariable UUID profileId,
-            @Valid @RequestBody ProfileRequestDTO request,
-            @AuthenticationPrincipal Profile currentUser
+    @PostMapping("/admin/atualizar-role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Profile> updateUserRole(
+            @Valid @RequestBody AtualizarRoleDTO request
     ) {
-        if (!currentUser.getId().equals(profileId) && currentUser.getRole() != ProfileRole.ADMIN) {
-            throw new AccessDeniedException("Acesso negado");
-        }
-
-        Profile updatedProfile = profileService.updateProfile(profileId, request);
+        // The method now exists in the service
+        Profile updatedProfile = profileService.updateUserRole(request.userId(), request.novoRole());
         return ResponseEntity.ok(updatedProfile);
+    }
+
+    @PutMapping("/atualizar-meu-perfil")
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    public ResponseEntity<ProfileRequestDTO> atualizarMeuPerfil(
+            @Valid @RequestBody ProfileUpdateDTO dto, // Changed DTO type
+            @AuthenticationPrincipal Profile usuarioLogado
+    ) {
+        Profile perfilAtualizado = postagemService.atualizarPerfilUsuario(
+                usuarioLogado.getId(),
+                dto
+        );
+        return ResponseEntity.ok(new ProfileRequestDTO(perfilAtualizado));
+    }
+
+    @PutMapping("/admin/atualizar-profile-usuario/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ProfileAdminDTO> atualizarPerfilAdmin(
+            @PathVariable UUID userId,
+            @Valid @RequestBody ProfileAdminUpdateDTO request
+    ) {
+        Profile updatedProfile = profileService.atualizarPerfilAdmin(userId, request);
+        return ResponseEntity.ok(new ProfileAdminDTO(updatedProfile));
     }
 
     @DeleteMapping("/{profileId}")

@@ -1,13 +1,13 @@
 package com.trendsit.trendsit_fase2.service;
 
-import com.trendsit.trendsit_fase2.dto.PostagemDto;
-import com.trendsit.trendsit_fase2.dto.PostagemResponseDTO;
+import com.trendsit.trendsit_fase2.dto.*;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.model.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.PostagemRepository;
 import com.trendsit.trendsit_fase2.repository.ProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -17,14 +17,14 @@ import java.util.stream.Collectors;
 
 @Service
 public class PostagemServiceImpl implements PostagemService {
-
     private final PostagemRepository postagemRepository;
     private final ProfileRepository profileRepository;
     private final ProfileService profileService;
 
+    @Autowired
     public PostagemServiceImpl(
             PostagemRepository postagemRepository,
-            ProfileRepository profileRepository,
+            ProfileRepository profileRepository, // Add this
             ProfileService profileService
     ) {
         this.postagemRepository = postagemRepository;
@@ -32,8 +32,9 @@ public class PostagemServiceImpl implements PostagemService {
         this.profileService = profileService;
     }
 
+
     @Override
-    public Postagem createPost(PostagemDto postagemDto, UUID autorId) {
+    public Postagem createPost(PostagemDTO postagemDto, UUID autorId) {
         Profile autor = profileRepository.findById(autorId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
@@ -66,7 +67,7 @@ public class PostagemServiceImpl implements PostagemService {
     }
 
     @Override
-    public Postagem updatePost(Long postId, PostagemDto postagemDto) {
+    public Postagem updatePost(Long postId, PostagemDTO postagemDto) {
         Postagem existingPost = postagemRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
 
@@ -83,4 +84,78 @@ public class PostagemServiceImpl implements PostagemService {
         }
         postagemRepository.deleteById(postId);
     }
+
+    @Override
+    public Profile updateUserRole(UUID userId, ProfileRole newRole) {
+        Profile profile = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
+
+        profile.setRole(newRole);
+        return profileRepository.save(profile);
+    }
+
+    @Override
+    public Profile atualizarPerfilUsuario(UUID userId, ProfileUpdateDTO dto) {
+        Profile profile = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
+
+        profile.setUsername(dto.getUsername());
+        profile.setIdade(dto.getIdade());
+        profile.setCurso(dto.getCurso());
+
+        return profileRepository.save(profile);
+    }
+
+    @Override
+    public List<ProfileAdminDTO> findAllForAdmin() {
+        List<Profile> profiles = profileRepository.findAll();
+        return profiles.stream()
+                .map(ProfileAdminDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<ProfilePublicoDTO> findAllPublicProfiles() {
+        List<Profile> profiles = profileRepository.findAll();
+        return profiles.stream()
+                .map(ProfilePublicoDTO::new)
+                .collect(Collectors.toList());
+    }
+    @Override
+    public Profile updateUserProfileAdmin(UUID userId, ProfileRequestDTO request) {
+        // Fetch the profile
+        Profile profile = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
+
+        // Update fields from DTO
+        profile.setUsername(request.getUsername());
+        profile.setIdade(request.getIdade());
+        profile.setCurso(request.getCurso());
+
+        // Save and return updated profile
+        return profileRepository.save(profile);
+    }
+
+    @Override
+    public Profile atualizarPerfilAdmin(UUID userId, ProfileAdminUpdateDTO dto) {
+        Profile profile = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
+
+        // Update all fields (including role)
+        profile.setUsername(dto.getUsername());
+        profile.setIdade(dto.getIdade());
+        profile.setCurso(dto.getCurso());
+        profile.setRole(dto.getRole()); // Admins can modify roles
+
+        return profileRepository.save(profile);
+    }
+
+    @Override
+    public List<ProfilePublicoDTO> findAllPublicoProfiles() {
+        List<Profile> profiles = profileRepository.findAll();
+        return profiles.stream()
+                .map(ProfilePublicoDTO::new)
+                .collect(Collectors.toList());
+    }
+
 }

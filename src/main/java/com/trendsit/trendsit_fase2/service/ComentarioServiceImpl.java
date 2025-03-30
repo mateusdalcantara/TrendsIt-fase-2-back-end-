@@ -1,6 +1,6 @@
 package com.trendsit.trendsit_fase2.service;
 
-import com.trendsit.trendsit_fase2.dto.ComentarioDto;
+import com.trendsit.trendsit_fase2.dto.ComentarioDTO;
 import com.trendsit.trendsit_fase2.dto.ComentarioResponseDTO;
 import com.trendsit.trendsit_fase2.model.Comentario;
 import com.trendsit.trendsit_fase2.model.Postagem;
@@ -37,7 +37,7 @@ public class ComentarioServiceImpl implements ComentarioService {
     }
 
     @Override
-    public Comentario adicionarComentario(ComentarioDto comentarioDto, UUID autorId, Long postId) {
+    public Comentario adicionarComentario(ComentarioDTO comentarioDTO, UUID autorId, Long postId) {
         Profile autor = profileRepository.findById(autorId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
@@ -45,7 +45,7 @@ public class ComentarioServiceImpl implements ComentarioService {
                 .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
 
         Comentario comentario = new Comentario();
-        comentario.setConteudo(comentarioDto.getConteudo());
+        comentario.setConteudo(comentarioDTO.getConteudo());
         comentario.setAutor(autor);
         comentario.setPostagem(postagem);
 
@@ -53,8 +53,8 @@ public class ComentarioServiceImpl implements ComentarioService {
     }
 
     @Override
-    public Optional<Comentario> findById(Long commentId) {
-        return comentarioRepository.findWithAutorById(commentId);
+    public Optional<Comentario> findById(Long comentarioId) {
+        return comentarioRepository.findWithAutorById(comentarioId);
     }
 
     @Override
@@ -63,31 +63,6 @@ public class ComentarioServiceImpl implements ComentarioService {
                 profileService.findById(currentUserId)
                         .map(p -> p.getRole() == ProfileRole.ADMIN)
                         .orElse(false);
-    }
-
-    @Override
-    public Comentario updateComentario(Long commentId, ComentarioDto comentarioDto) {
-        Comentario existingComment = comentarioRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
-
-        existingComment.setConteudo(comentarioDto.getConteudo());
-        return comentarioRepository.save(existingComment);
-    }
-
-    @Override
-    public void deleteComentario(Long postId, Long commentId, UUID currentUserId) {
-        Comentario comentario = comentarioRepository.findById(commentId)
-                .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
-
-        if (!comentario.getPostagem().getId().equals(postId)) {
-            throw new IllegalArgumentException("Comentário não pertence ao post especificado");
-        }
-
-        if (!isOwnerOrAdmin(comentario, currentUserId)) {
-            throw new AccessDeniedException("Acesso negado");
-        }
-
-        comentarioRepository.delete(comentario);
     }
 
     @Override
@@ -108,5 +83,46 @@ public class ComentarioServiceImpl implements ComentarioService {
         return comentarios.stream()
                 .map(ComentarioResponseDTO::new)
                 .toList();
+    }
+
+    @Override
+    public List<ComentarioResponseDTO> findByPostagemId(Long postId) {
+        List<Comentario> comentarios = comentarioRepository.findByPostagemId(postId); // Matches the @Query method
+        return comentarios.stream()
+                .map(ComentarioResponseDTO::new)
+                .toList();
+    }
+
+    @Override
+    public Comentario updateComentario(Long comentarioId, Long postId, ComentarioDTO comentarioDTO, UUID currentUserId) {
+        Comentario comentario = comentarioRepository.findById(comentarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
+
+        if (!comentario.getPostagem().getId().equals(postId)) {
+            throw new IllegalArgumentException("Comentário não pertence ao post especificado");
+        }
+
+        if (!isOwnerOrAdmin(comentario, currentUserId)) {
+            throw new AccessDeniedException("Acesso negado");
+        }
+
+        comentario.setConteudo(comentarioDTO.getConteudo());
+        return comentarioRepository.save(comentario);
+    }
+
+    @Override
+    public void deleteComentario(Long postId, Long comentarioId, UUID currentUserId) {
+        Comentario comentario = comentarioRepository.findById(comentarioId)
+                .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
+
+        if (!comentario.getPostagem().getId().equals(postId)) {
+            throw new IllegalArgumentException("Comentário não pertence ao post especificado");
+        }
+
+        if (!isOwnerOrAdmin(comentario, currentUserId)) {
+            throw new AccessDeniedException("Acesso negado");
+        }
+
+        comentarioRepository.delete(comentario);
     }
 }

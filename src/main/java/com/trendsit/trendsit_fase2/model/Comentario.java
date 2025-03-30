@@ -30,6 +30,7 @@ public class Comentario {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "autor_id")
+    @JsonBackReference("comment-author")
     private Profile autor;
 
     @ManyToOne(fetch = FetchType.LAZY)

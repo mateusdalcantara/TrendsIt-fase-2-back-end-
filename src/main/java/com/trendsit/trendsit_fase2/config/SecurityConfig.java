@@ -6,6 +6,7 @@ import com.trendsit.trendsit_fase2.service.ProfileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -24,23 +25,20 @@ public class SecurityConfig {
 
     private final ProfileService profileService;
     private final String supabaseSecret;
-
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
-
     private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
-    public SecurityConfig
-            (
+    public SecurityConfig(
             ProfileService profileService,
             @Value("${supabase.jwt.secret}") String supabaseSecret,
             CustomAccessDeniedHandler customAccessDeniedHandler,
-            CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
+            CustomAuthenticationEntryPoint customAuthenticationEntryPoint
+    ) {
         this.profileService = profileService;
         this.supabaseSecret = supabaseSecret;
         this.customAccessDeniedHandler = customAccessDeniedHandler;
         this.customAuthenticationEntryPoint = customAuthenticationEntryPoint;
     }
-
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -48,17 +46,13 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    // Libere todas as origens temporariamente para testes
                     config.setAllowedOrigins(List.of(
                             "https://trendit.bubbleapps.io",
                             "http://trendsitone.fly.dev",
-                            "http://localhost:8080" // Para testes locais
+                            "http://localhost:8080"
                     ));
-                    // Adicione métodos necessários
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-                    // Permita todos os headers
                     config.setAllowedHeaders(List.of("*"));
-                    // Permita credenciais
                     config.setAllowCredentials(true);
                     return config;
                 }))
@@ -66,27 +60,30 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/auth/check-auth",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**",
-                                "/swagger-resources/**",
-                                "/webjars/**",
-                                "/swagger-ui.html",
                                 "/auth/login",
                                 "/auth/register",
-                                "/common-area",
+                                "/auth/check-auth"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
                                 "/api/post",
-                                "/api/post/{postId}/comment",
-                                "/protected-endpoint",
+                                "/api/post/**",
                                 "/profiles"
                         ).permitAll()
-                        .requestMatchers("/admin-only").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers(
+                                "/v3/api-docs/**",
+                                "/swagger-ui/**",
+                                "/swagger-resources/**"
+                        ).permitAll()//.hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(
                         new JwtAuthenticationFilter(profileService, supabaseSecret),
                         UsernamePasswordAuthenticationFilter.class
-                ).exceptionHandling(exception -> exception.accessDeniedHandler(customAccessDeniedHandler).authenticationEntryPoint(customAuthenticationEntryPoint));
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(customAccessDeniedHandler)
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
+                );
 
         return http.build();
     }
