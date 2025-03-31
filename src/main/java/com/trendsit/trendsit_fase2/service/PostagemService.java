@@ -1,6 +1,8 @@
 package com.trendsit.trendsit_fase2.service;
 
 import com.trendsit.trendsit_fase2.dto.*;
+import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminDTO;
+import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminUpdateDTO;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.model.ProfileRole;
@@ -13,6 +15,7 @@ public interface PostagemService {
 
     Postagem createPost(PostagemDTO postagemDto, UUID autorId);
     List<PostagemResponseDTO> findAllPosts();
+    List<PostagemResponseAdminDTO> findAllPostsAdmin();
     boolean isOwnerOrAdmin(Postagem postagem, UUID currentUserId);
     Optional<Postagem> findById(Long postId);
     Postagem updatePost(Long postId, PostagemDTO postagemDto);

@@ -1,5 +1,7 @@
 package com.trendsit.trendsit_fase2.dto;
 
+import com.trendsit.trendsit_fase2.dto.Admin.AutorAdminDTO;
+import com.trendsit.trendsit_fase2.dto.Admin.ComentarioResponseAdminDTO;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import lombok.Getter;
 import lombok.Setter;
@@ -9,30 +11,31 @@ import java.util.List;
 
 @Getter
 @Setter
-public class PostagemResponseDTO {
+public class PostagemResponseAdminDTO {
     private Long id;
     private String titulo;
     private String conteudo;
     private LocalDateTime createdAt;
-    private AutorDTO autor;
+    private AutorAdminDTO autor;
     private int quantidadeComentarios;
-    private List<ComentarioResponseDTO> comentarios;
+    private List<ComentarioResponseAdminDTO> comentarios;
 
-    public PostagemResponseDTO(Postagem postagem) {
+    public PostagemResponseAdminDTO(Postagem postagem) {
+        this.id = postagem.getId();
         this.titulo = postagem.getTitulo();
         this.conteudo = postagem.getConteudo();
         this.createdAt = postagem.getCreatedAt();
-        this.autor = new AutorDTO(postagem.getAutor());
+        this.autor = new AutorAdminDTO(postagem.getAutor());
         this.quantidadeComentarios = postagem.getComentarios().size();
-
         this.comentarios = postagem.getComentarios().stream()
-                .map(comentario -> new ComentarioResponseDTO(
+                .map(comentario -> new ComentarioResponseAdminDTO(
+                        comentario.getId(),
                         comentario.getConteudo(),
                         comentario.getCreatedAt(),
-                        new AutorDTO(comentario.getAutor())
+                        new AutorAdminDTO(comentario.getAutor()),
+                        comentario.getPostagem().getId()
                 ))
                 .toList();
     }
-
 }
 

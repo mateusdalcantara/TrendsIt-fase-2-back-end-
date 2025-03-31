@@ -1,4 +1,4 @@
-package com.trendsit.trendsit_fase2.dto;
+package com.trendsit.trendsit_fase2.dto.Admin;
 
 import com.trendsit.trendsit_fase2.model.Profile;
 import lombok.Getter;
@@ -8,10 +8,12 @@ import java.util.UUID;
 
 @Getter
 @Setter
-public class AutorDTO {
+public class AutorAdminDTO {
+    private UUID id;
     private String username;
 
-    public AutorDTO(Profile autor) {
+    public AutorAdminDTO(Profile autor) {
+        this.id = autor.getId();
         this.username = autor.getUsername();
     }
 }

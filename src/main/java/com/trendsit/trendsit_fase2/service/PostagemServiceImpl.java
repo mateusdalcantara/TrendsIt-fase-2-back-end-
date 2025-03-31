@@ -1,6 +1,8 @@
 package com.trendsit.trendsit_fase2.service;
 
 import com.trendsit.trendsit_fase2.dto.*;
+import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminDTO;
+import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminUpdateDTO;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.model.ProfileRole;
@@ -50,6 +52,13 @@ public class PostagemServiceImpl implements PostagemService {
     public List<PostagemResponseDTO> findAllPosts() {
         return postagemRepository.findAllWithComments().stream()
                 .map(PostagemResponseDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<PostagemResponseAdminDTO> findAllPostsAdmin() {
+        return postagemRepository.findAllWithComments().stream()
+                .map(PostagemResponseAdminDTO::new)
                 .collect(Collectors.toList());
     }
 

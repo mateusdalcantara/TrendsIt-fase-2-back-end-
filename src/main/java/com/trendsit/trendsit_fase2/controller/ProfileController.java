@@ -1,14 +1,14 @@
 package com.trendsit.trendsit_fase2.controller;
 
 import com.trendsit.trendsit_fase2.dto.*;
+import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminDTO;
+import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminUpdateDTO;
 import com.trendsit.trendsit_fase2.model.Profile;
-import com.trendsit.trendsit_fase2.model.ProfileRole;
 import com.trendsit.trendsit_fase2.service.PostagemService;
 import com.trendsit.trendsit_fase2.service.ProfileService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -53,7 +53,6 @@ public class ProfileController {
     public ResponseEntity<Profile> updateUserRole(
             @Valid @RequestBody AtualizarRoleDTO request
     ) {
-        // The method now exists in the service
         Profile updatedProfile = profileService.updateUserRole(request.userId(), request.novoRole());
         return ResponseEntity.ok(updatedProfile);
     }

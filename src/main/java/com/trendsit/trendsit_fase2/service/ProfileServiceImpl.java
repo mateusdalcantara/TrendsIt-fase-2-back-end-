@@ -2,6 +2,8 @@ package com.trendsit.trendsit_fase2.service;
 
 
 import com.trendsit.trendsit_fase2.dto.*;
+import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminDTO;
+import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminUpdateDTO;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.model.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.ProfileRepository;

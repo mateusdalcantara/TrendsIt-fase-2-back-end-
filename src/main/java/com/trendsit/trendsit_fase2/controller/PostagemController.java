@@ -1,6 +1,7 @@
 package com.trendsit.trendsit_fase2.controller;
 
 import com.trendsit.trendsit_fase2.dto.PostagemDTO;
+import com.trendsit.trendsit_fase2.dto.PostagemResponseAdminDTO;
 import com.trendsit.trendsit_fase2.dto.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import com.trendsit.trendsit_fase2.model.Profile;
@@ -35,7 +36,7 @@ public class PostagemController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')") // Permite USER e ADMIN
+    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PostagemResponseDTO> createPost(
             @Valid @RequestBody PostagemDTO postagemDto,
             @AuthenticationPrincipal Profile profile
@@ -48,6 +49,19 @@ public class PostagemController {
     public ResponseEntity<List<PostagemResponseDTO>> getAllPosts() {
         List<PostagemResponseDTO> posts = postagemService.findAllPosts();
         return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/admin/Posts")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public ResponseEntity<List<PostagemResponseAdminDTO>> getAllPostsAdmin() {
+        List<PostagemResponseAdminDTO> posts = postagemService.findAllPostsAdmin();
+        return ResponseEntity.ok(posts);
+    }
+
+    @GetMapping("/{postId}")
+    public ResponseEntity<PostagemResponseDTO> GetIdPOST(@PathVariable Long postId){
+        Postagem postagem = postagemService.findById(postId).orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
+        return ResponseEntity.ok(new PostagemResponseDTO(postagem));
     }
 
     @PutMapping("/{postId}")
@@ -67,6 +81,8 @@ public class PostagemController {
         Postagem updatedPost = postagemService.updatePost(postId, postagemDto);
         return ResponseEntity.ok(new PostagemResponseDTO(updatedPost));
     }
+
+
 
     @DeleteMapping("/{postId}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
