@@ -1,8 +1,8 @@
 package com.trendsit.trendsit_fase2.controller;
 
-import com.trendsit.trendsit_fase2.dto.PostagemDTO;
-import com.trendsit.trendsit_fase2.dto.PostagemResponseAdminDTO;
-import com.trendsit.trendsit_fase2.dto.PostagemResponseDTO;
+import com.trendsit.trendsit_fase2.dto.Postagem.PostagemDTO;
+import com.trendsit.trendsit_fase2.dto.Postagem.PostagemResponseAdminDTO;
+import com.trendsit.trendsit_fase2.dto.Postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.service.PostagemService;

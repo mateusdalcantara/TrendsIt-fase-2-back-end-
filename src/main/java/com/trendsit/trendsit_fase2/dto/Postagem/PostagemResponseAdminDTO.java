@@ -1,4 +1,4 @@
-package com.trendsit.trendsit_fase2.dto;
+package com.trendsit.trendsit_fase2.dto.Postagem;
 
 import com.trendsit.trendsit_fase2.dto.Admin.AutorAdminDTO;
 import com.trendsit.trendsit_fase2.dto.Admin.ComentarioResponseAdminDTO;

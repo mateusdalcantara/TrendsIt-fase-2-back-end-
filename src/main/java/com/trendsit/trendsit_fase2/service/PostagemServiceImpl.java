@@ -1,8 +1,11 @@
 package com.trendsit.trendsit_fase2.service;
 
-import com.trendsit.trendsit_fase2.dto.*;
 import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminDTO;
-import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminUpdateDTO;
+import com.trendsit.trendsit_fase2.dto.Postagem.PostagemDTO;
+import com.trendsit.trendsit_fase2.dto.Postagem.PostagemResponseAdminDTO;
+import com.trendsit.trendsit_fase2.dto.Postagem.PostagemResponseDTO;
+import com.trendsit.trendsit_fase2.dto.Profile.ProfilePublicoDTO;
+import com.trendsit.trendsit_fase2.dto.Profile.ProfileUpdateDTO;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.model.ProfileRole;
@@ -129,34 +132,6 @@ public class PostagemServiceImpl implements PostagemService {
         return profiles.stream()
                 .map(ProfilePublicoDTO::new)
                 .collect(Collectors.toList());
-    }
-    @Override
-    public Profile updateUserProfileAdmin(UUID userId, ProfileRequestDTO request) {
-        // Fetch the profile
-        Profile profile = profileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
-
-        // Update fields from DTO
-        profile.setUsername(request.getUsername());
-        profile.setIdade(request.getIdade());
-        profile.setCurso(request.getCurso());
-
-        // Save and return updated profile
-        return profileRepository.save(profile);
-    }
-
-    @Override
-    public Profile atualizarPerfilAdmin(UUID userId, ProfileAdminUpdateDTO dto) {
-        Profile profile = profileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
-
-        // Update all fields (including role)
-        profile.setUsername(dto.getUsername());
-        profile.setIdade(dto.getIdade());
-        profile.setCurso(dto.getCurso());
-        profile.setRole(dto.getRole()); // Admins can modify roles
-
-        return profileRepository.save(profile);
     }
 
     @Override

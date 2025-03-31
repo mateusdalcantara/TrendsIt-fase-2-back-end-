@@ -1,4 +1,4 @@
-package com.trendsit.trendsit_fase2.dto;
+package com.trendsit.trendsit_fase2.dto.Profile;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

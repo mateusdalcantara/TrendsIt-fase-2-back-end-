@@ -4,6 +4,8 @@ package com.trendsit.trendsit_fase2.service;
 import com.trendsit.trendsit_fase2.dto.*;
 import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminDTO;
 import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminUpdateDTO;
+import com.trendsit.trendsit_fase2.dto.Profile.ProfilePublicoDTO;
+import com.trendsit.trendsit_fase2.dto.Profile.ProfileRequestDTO;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.model.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.ProfileRepository;
@@ -140,5 +142,18 @@ public class ProfileServiceImpl implements ProfileService {
 
         return profileRepository.save(profile);
     }
+
+    @Override
+    public Profile updateUserProfileAdmin(UUID userId, ProfileRequestDTO request) {
+        Profile profile = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
+
+        profile.setUsername(request.getUsername());
+        profile.setIdade(request.getIdade());
+        profile.setCurso(request.getCurso());
+
+        return profileRepository.save(profile);
+    }
+
 
 }
