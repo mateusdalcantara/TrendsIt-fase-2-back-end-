@@ -1,7 +1,9 @@
 package com.trendsit.trendsit_fase2.model;
 
+import com.trendsit.trendsit_fase2.util.OwnableEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
@@ -11,7 +13,8 @@ import java.time.LocalDateTime;
 @Setter
 @Entity
 @Table(name = "eventos")
-public class Evento {
+@NoArgsConstructor
+public class Evento implements OwnableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

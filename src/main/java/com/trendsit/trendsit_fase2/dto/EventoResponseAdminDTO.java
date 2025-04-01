@@ -12,14 +12,16 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class EventoResponseDTO {
+public class EventoResponseAdminDTO {
+    private Long id;
     private String titulo;
     private String conteudo;
     private LocalDateTime createdAt;
     private AutorDTO autor;
     private Boolean status;
 
-    public EventoResponseDTO(Evento evento) {
+    public EventoResponseAdminDTO(Evento evento) {
+        this.id = evento.getId();
         this.titulo = evento.getTitulo();
         this.conteudo = evento.getConteudo();
         this.createdAt = evento.getCreatedAt();

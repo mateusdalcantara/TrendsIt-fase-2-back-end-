@@ -1,5 +1,6 @@
 package com.trendsit.trendsit_fase2.dto;
 
+import com.trendsit.trendsit_fase2.util.OwnableEntity;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
