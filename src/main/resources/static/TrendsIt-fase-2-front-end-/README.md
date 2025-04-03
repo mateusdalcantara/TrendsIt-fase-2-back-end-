@@ -1,0 +1,1 @@
+# TrendsIt-fase-2-front-end-
