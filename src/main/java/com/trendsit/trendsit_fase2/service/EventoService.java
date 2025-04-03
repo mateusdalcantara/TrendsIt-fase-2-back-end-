@@ -34,45 +34,51 @@ public class EventoService {
 
     }
 
-    public List<EventoResponseDTO> findAllEvents(){
-        List<EventoResponseDTO> evento = eventoRepository.findAllByStatusTrue().stream()
-                .map(EventoResponseDTO::new).collect(Collectors.toList());
-        return evento;
+    public List<EventoResponseDTO> findAllEvents() {
+        return eventoRepository.findAllApprovedEvents().stream()
+                .map(EventoResponseDTO::new)
+                .collect(Collectors.toList());
     }
 
-    public Evento createEvent(EventoDTO eventodto, UUID autorid)
-    {
-        Profile autor = profileRepository.findById(autorid).orElseThrow(
-                () -> new EntityNotFoundException("Perfil não encontrado"));
+    public Evento createEvent(EventoDTO dto, UUID autorId) {
+        Profile autor = profileRepository.findById(autorId)
+                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
-        Evento eventocreate = new Evento();
-        eventocreate.setAutor(autor);
-        eventocreate.setTitulo(eventodto.getTitulo());
-        eventocreate.setConteudo(eventodto.getConteudo());
-        eventocreate.setCreatedAt(LocalDateTime.now());
-        eventocreate.setStatus(false);
-        return eventoRepository.save(eventocreate);
-        
-    }
-
-    public Evento updateEvent(Long id, EventoDTO eventoDTO, UUID currentUserId) throws AccessDeniedException {
-        Evento evento = eventoRepository.findById(id).orElseThrow(()-> new EntityNotFoundException("Evento não encontrado"));
-        if (!authorizationService.isOwnerOrAdmin(evento,currentUserId)) {
-            throw new AccessDeniedException("Acesso negado");
-        }
-        evento.setTitulo(eventoDTO.getTitulo());
-        evento.setConteudo(eventoDTO.getConteudo());
+        Evento evento = new Evento();
+        evento.setTitulo(dto.getTitulo());
+        evento.setConteudo(dto.getConteudo());
+        evento.setDataEvento(dto.getDataEvento());
+        evento.setLocal(dto.getLocal());
+        evento.setAutor(autor);
+        evento.setStatus(Evento.Status.PENDENTE);
 
         return eventoRepository.save(evento);
-
     }
 
-    public Evento updateEventStatus(Long id, boolean status, UUID userId) throws AccessDeniedException {
-        Evento evento = eventoRepository.findById(id).orElseThrow(
-                () -> new EntityNotFoundException("Evento não encontrado com id: " + id));
 
-        Profile user = profileRepository.findById(userId).orElseThrow(
-                () -> new EntityNotFoundException("Perfil não encontrado"));
+
+    public Evento updateEvent(Long id, EventoDTO dto, UUID currentUserId) throws AccessDeniedException {
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Evento não encontrado"));
+
+        if (!authorizationService.isOwnerOrAdmin(evento, currentUserId)) {
+            throw new AccessDeniedException("Acesso negado");
+        }
+
+        evento.setTitulo(dto.getTitulo());
+        evento.setConteudo(dto.getConteudo());
+        evento.setDataEvento(dto.getDataEvento());
+        evento.setLocal(dto.getLocal());
+
+        return eventoRepository.save(evento);
+    }
+
+    public Evento updateEventStatus(Long id, Evento.Status status, UUID userId) throws AccessDeniedException {
+        Evento evento = eventoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Evento não encontrado"));
+
+        Profile user = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
         if (!user.getRole().equals(ProfileRole.ADMIN)) {
             throw new AccessDeniedException("Apenas administradores podem atualizar o status do evento.");
@@ -84,6 +90,14 @@ public class EventoService {
 
     public List<EventoResponseAdminDTO> findAllEventsAdmin() {
         return eventoRepository.findAll().stream()
-                .map(EventoResponseAdminDTO::new).collect(Collectors.toList());
+                .map(EventoResponseAdminDTO::new)
+                .collect(Collectors.toList());
     }
+
+    public List<EventoResponseAdminDTO> findAllPendingEvents() {
+        return eventoRepository.findAllPendingEvents().stream()
+                .map(EventoResponseAdminDTO::new)
+                .collect(Collectors.toList());
+    }
+
 }

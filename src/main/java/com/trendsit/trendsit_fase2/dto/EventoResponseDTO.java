@@ -1,30 +1,24 @@
 package com.trendsit.trendsit_fase2.dto;
 
 import com.trendsit.trendsit_fase2.model.Evento;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class EventoResponseDTO {
     private String titulo;
     private String conteudo;
+    private LocalDateTime dataEvento;
+    private String local;
     private LocalDateTime createdAt;
-    private AutorDTO autor;
-    private Boolean status;
+    private String autorUsername;
 
     public EventoResponseDTO(Evento evento) {
         this.titulo = evento.getTitulo();
         this.conteudo = evento.getConteudo();
+        this.dataEvento = evento.getDataEvento();
+        this.local = evento.getLocal();
         this.createdAt = evento.getCreatedAt();
-        this.autor = new AutorDTO();
-        this.autor.setUsername(evento.getAutor().getUsername());
-        this.status = evento.getStatus();
+        this.autorUsername = evento.getAutor().getUsername();
     }
 }

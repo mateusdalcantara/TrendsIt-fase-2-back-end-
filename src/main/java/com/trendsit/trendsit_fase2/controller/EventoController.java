@@ -29,33 +29,36 @@ public class EventoController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EventoResponseDTO>> obterEvento()
-    {
-        List<EventoResponseDTO> eventos = eventoService.findAllEvents();
-        return ResponseEntity.ok(eventos);
+    public ResponseEntity<List<EventoResponseDTO>> obterEventos() {
+        return ResponseEntity.ok(eventoService.findAllEvents());
     }
 
     @GetMapping("/admin")
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    public ResponseEntity<List<EventoResponseAdminDTO>> obterEventoAdmin()
-    {
-        List<EventoResponseAdminDTO> eventos = eventoService.findAllEventsAdmin();
-        return ResponseEntity.ok(eventos);
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<EventoResponseAdminDTO>> obterTodosEventosAdmin() {
+        return ResponseEntity.ok(eventoService.findAllEventsAdmin());
+    }
+
+    @GetMapping("/admin/pendentes")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<EventoResponseAdminDTO>> obterEventosPendentes() {
+        return ResponseEntity.ok(eventoService.findAllPendingEvents());
     }
 
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<EventoResponseDTO> createEvento(@Valid @RequestBody EventoDTO eventoDto, @AuthenticationPrincipal Profile profile)
-    {
-        Evento evento = eventoService.createEvent(eventoDto,profile.getId());
+    public ResponseEntity<EventoResponseDTO> criarEvento(
+            @Valid @RequestBody EventoDTO eventoDto,
+            @AuthenticationPrincipal Profile profile) {
+        Evento evento = eventoService.createEvent(eventoDto, profile.getId());
         return ResponseEntity.ok(new EventoResponseDTO(evento));
     }
 
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<EventoResponseDTO> updateEventStatus(
+    public ResponseEntity<EventoResponseDTO> atualizarStatusEvento(
             @PathVariable Long id,
-            @RequestParam boolean status,
+            @RequestParam Evento.Status status,
             @AuthenticationPrincipal Profile user) throws AccessDeniedException {
         Evento updatedEvent = eventoService.updateEventStatus(id, status, user.getId());
         return ResponseEntity.ok(new EventoResponseDTO(updatedEvent));
@@ -64,13 +67,11 @@ public class EventoController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
-    public ResponseEntity<EventoResponseDTO> updateEvent
-            (@PathVariable Long id,
-             @Valid @RequestBody EventoDTO eventoDTO,
-             @AuthenticationPrincipal Profile user
-            ) throws AccessDeniedException {
-        Evento updatedEvent = eventoService.updateEvent(id,eventoDTO,user.getId());
+    public ResponseEntity<EventoResponseDTO> atualizarEvento(
+            @PathVariable Long id,
+            @Valid @RequestBody EventoDTO eventoDTO,
+            @AuthenticationPrincipal Profile user) throws AccessDeniedException {
+        Evento updatedEvent = eventoService.updateEvent(id, eventoDTO, user.getId());
         return ResponseEntity.ok(new EventoResponseDTO(updatedEvent));
-
     }
  }
