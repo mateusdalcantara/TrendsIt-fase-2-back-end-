@@ -1,4 +1,4 @@
-package com.trendsit.trendsit_fase2.dto;
+package com.trendsit.trendsit_fase2.dto.Comentario;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;

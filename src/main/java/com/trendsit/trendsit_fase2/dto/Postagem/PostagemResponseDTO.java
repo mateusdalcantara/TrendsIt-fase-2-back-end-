@@ -1,7 +1,7 @@
 package com.trendsit.trendsit_fase2.dto.Postagem;
 
 import com.trendsit.trendsit_fase2.dto.AutorDTO;
-import com.trendsit.trendsit_fase2.dto.ComentarioResponseDTO;
+import com.trendsit.trendsit_fase2.dto.Comentario.ComentarioResponseDTO;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import lombok.Getter;
 import lombok.Setter;

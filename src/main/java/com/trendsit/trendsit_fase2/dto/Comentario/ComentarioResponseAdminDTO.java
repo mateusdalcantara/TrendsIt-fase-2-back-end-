@@ -1,6 +1,6 @@
-package com.trendsit.trendsit_fase2.dto.Admin;
+package com.trendsit.trendsit_fase2.dto.Comentario;
 
-import com.trendsit.trendsit_fase2.dto.AutorDTO;
+import com.trendsit.trendsit_fase2.dto.AutorAdminDTO;
 import com.trendsit.trendsit_fase2.model.Comentario;
 import lombok.Getter;
 import lombok.Setter;

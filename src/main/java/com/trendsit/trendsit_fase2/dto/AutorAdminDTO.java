@@ -1,4 +1,4 @@
-package com.trendsit.trendsit_fase2.dto.Admin;
+package com.trendsit.trendsit_fase2.dto;
 
 import com.trendsit.trendsit_fase2.model.Profile;
 import lombok.Getter;

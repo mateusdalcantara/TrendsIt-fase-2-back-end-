@@ -1,4 +1,4 @@
-package com.trendsit.trendsit_fase2.dto;
+package com.trendsit.trendsit_fase2.dto.Evento;
 
 import lombok.Getter;
 import lombok.Setter;

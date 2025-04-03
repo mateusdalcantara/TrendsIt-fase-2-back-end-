@@ -1,18 +1,16 @@
 package com.trendsit.trendsit_fase2.controller;
 
-import com.trendsit.trendsit_fase2.dto.EventoDTO;
-import com.trendsit.trendsit_fase2.dto.EventoResponseAdminDTO;
-import com.trendsit.trendsit_fase2.dto.EventoResponseDTO;
+import com.trendsit.trendsit_fase2.dto.Evento.EventoDTO;
+import com.trendsit.trendsit_fase2.dto.Evento.EventoResponseAdminDTO;
+import com.trendsit.trendsit_fase2.dto.Evento.EventoResponseDTO;
 import com.trendsit.trendsit_fase2.model.Evento;
 import com.trendsit.trendsit_fase2.model.Profile;
 import com.trendsit.trendsit_fase2.service.EventoService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
@@ -54,7 +52,7 @@ public class EventoController {
         return ResponseEntity.ok(new EventoResponseDTO(evento));
     }
 
-    @PutMapping("/{id}/status")
+    @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EventoResponseDTO> atualizarStatusEvento(
             @PathVariable Long id,

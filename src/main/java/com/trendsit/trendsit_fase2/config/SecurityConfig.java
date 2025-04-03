@@ -68,7 +68,8 @@ public class SecurityConfig {
                                 "/api/post",
                                 "/api/post/**",
                                 "/profiles",
-                                "/events"
+                                "/events",
+                                "/vagas"
                         ).permitAll()
                         .requestMatchers(
                                 "/v3/api-docs/**",

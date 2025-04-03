@@ -1,12 +1,10 @@
 package com.trendsit.trendsit_fase2.service;
 
-import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminDTO;
-import com.trendsit.trendsit_fase2.dto.Admin.ProfileAdminUpdateDTO;
+import com.trendsit.trendsit_fase2.dto.Profile.ProfileAdminDTO;
 import com.trendsit.trendsit_fase2.dto.Postagem.PostagemDTO;
 import com.trendsit.trendsit_fase2.dto.Postagem.PostagemResponseAdminDTO;
 import com.trendsit.trendsit_fase2.dto.Postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.dto.Profile.ProfilePublicoDTO;
-import com.trendsit.trendsit_fase2.dto.Profile.ProfileRequestDTO;
 import com.trendsit.trendsit_fase2.dto.Profile.ProfileUpdateDTO;
 import com.trendsit.trendsit_fase2.model.Postagem;
 import com.trendsit.trendsit_fase2.model.Profile;

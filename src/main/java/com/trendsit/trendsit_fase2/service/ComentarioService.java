@@ -1,7 +1,7 @@
 package com.trendsit.trendsit_fase2.service;
 
-import com.trendsit.trendsit_fase2.dto.ComentarioDTO;
-import com.trendsit.trendsit_fase2.dto.ComentarioResponseDTO;
+import com.trendsit.trendsit_fase2.dto.Comentario.ComentarioDTO;
+import com.trendsit.trendsit_fase2.dto.Comentario.ComentarioResponseDTO;
 import com.trendsit.trendsit_fase2.model.Comentario;
 
 import java.util.List;
