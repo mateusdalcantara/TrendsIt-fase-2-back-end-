@@ -2,7 +2,7 @@ package com.trendsit.trendsit_fase2.config;
 
 import com.trendsit.trendsit_fase2.exception.CustomAccessDeniedHandler;
 import com.trendsit.trendsit_fase2.exception.CustomAuthenticationEntryPoint;
-import com.trendsit.trendsit_fase2.service.ProfileService;
+import com.trendsit.trendsit_fase2.service.profile.ProfileService;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

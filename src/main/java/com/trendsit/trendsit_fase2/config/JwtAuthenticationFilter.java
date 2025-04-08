@@ -1,7 +1,7 @@
 package com.trendsit.trendsit_fase2.config;
 
-import com.trendsit.trendsit_fase2.model.Profile;
-import com.trendsit.trendsit_fase2.service.ProfileService;
+import com.trendsit.trendsit_fase2.model.profile.Profile;
+import com.trendsit.trendsit_fase2.service.profile.ProfileService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
