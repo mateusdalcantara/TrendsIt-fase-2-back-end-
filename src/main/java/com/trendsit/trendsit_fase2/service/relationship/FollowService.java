@@ -11,8 +11,6 @@ public interface FollowService {
     void followUser(UUID followerId, UUID followingId);
     void unfollowUser(UUID followerId, UUID followingId);
     List<Profile> getFollowers(UUID userId);
-
     void followUserByFriendNumber(UUID id, Long targetFriendNumber);
-
     void unfollowUserByFriendNumber(UUID id, Long targetFriendNumber);
 }

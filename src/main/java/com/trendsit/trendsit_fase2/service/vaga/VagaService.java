@@ -3,9 +3,11 @@ package com.trendsit.trendsit_fase2.service.vaga;
 import com.trendsit.trendsit_fase2.dto.vaga.VagaDTO;
 import com.trendsit.trendsit_fase2.dto.vaga.VagaResponseAdminDTO;
 import com.trendsit.trendsit_fase2.dto.vaga.VagaResponseDTO;
+import com.trendsit.trendsit_fase2.model.evento.Evento;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.model.vaga.Vaga;
+import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import com.trendsit.trendsit_fase2.repository.vaga.VagaRepository;
 import com.trendsit.trendsit_fase2.service.auth.AuthorizationService;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
 import java.util.UUID;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,15 +24,18 @@ public class VagaService {
     private final VagaRepository vagaRepository;
     private final ProfileRepository profileRepository;
     private final AuthorizationService authorizationService;
+    private final EventoRepository eventoRepository;
 
     public VagaService(
             VagaRepository vagaRepository,
             ProfileRepository profileRepository,
-            AuthorizationService authorizationService
+            AuthorizationService authorizationService,
+            EventoRepository eventoRepository
     ) {
         this.vagaRepository = vagaRepository;
         this.profileRepository = profileRepository;
         this.authorizationService = authorizationService;
+        this.eventoRepository = eventoRepository;
     }
 
     // Listar vagas aprovadas (usuários comuns)
@@ -56,14 +62,17 @@ public class VagaService {
     }
 
     // Atualizar vaga (autor ou admin)
-    public Vaga updateVaga(Long id, VagaDTO dto, UUID currentUserId) {
-        Vaga vaga = vagaRepository.findById(id)
+    public Vaga updateVaga(Long codigoVaga, VagaDTO dto, UUID currentUserId) {
+        // 1. Find by codigoVaga instead of ID
+        Vaga vaga = vagaRepository.findByCodigoVaga(codigoVaga)
                 .orElseThrow(() -> new EntityNotFoundException("Vaga não encontrada"));
 
+        // 2. Authorization check
         if (!authorizationService.isOwnerOrAdmin(vaga, currentUserId)) {
             throw new AccessDeniedException("Acesso negado");
         }
 
+        // 3. Update fields
         vaga.setTitulo(dto.getTitulo());
         vaga.setConteudo(dto.getConteudo());
         vaga.setSalario(dto.getSalario());
@@ -77,15 +86,38 @@ public class VagaService {
         Vaga vaga = vagaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Vaga não encontrada"));
 
-        Profile user = profileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
+        Profile admin = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Admin não encontrado"));
 
-        if (!user.getRole().equals(ProfileRole.ADMIN)) {
+        if (admin.getRole() != ProfileRole.ADMIN) {
             throw new AccessDeniedException("Apenas administradores podem moderar vagas");
         }
 
         vaga.setStatus(status);
+
+        // Generate code only when approved
+        if (status == Vaga.Status.APROVADO) {
+            vaga.setCodigoVaga(gerarCodigoVagaUnico());
+        }
+
         return vagaRepository.save(vaga);
+    }
+
+    private Long gerarCodigoVagaUnico() {
+        Long codigo;
+        int maxAttempts = 10;
+        int attempts = 0;
+
+        do {
+            codigo = ThreadLocalRandom.current().nextLong(1L, 10_000_000_000L); // 10-digit number
+            attempts++;
+        } while (vagaRepository.existsByCodigoVaga(codigo) && attempts < maxAttempts);
+
+        if (attempts >= maxAttempts) {
+            throw new RuntimeException("Não foi possível gerar um código único após 10 tentativas");
+        }
+
+        return codigo;
     }
 
     // Listar todas as vagas (admin)
@@ -101,4 +133,29 @@ public class VagaService {
                 .map(VagaResponseAdminDTO::new)
                 .collect(Collectors.toList());
     }
+
+    public void deleteVagaByCodigo(Long codigoVaga, UUID adminId) {
+        Vaga vaga = vagaRepository.findByCodigoVaga(codigoVaga)
+                .orElseThrow(() -> new EntityNotFoundException("Vaga não encontrada"));
+
+        Profile admin = profileRepository.findById(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("Admin não encontrado"));
+
+        if (admin.getRole() != ProfileRole.ADMIN) {
+            throw new AccessDeniedException("Apenas administradores podem excluir vagas");
+        }
+
+        vagaRepository.delete(vaga);
+    }
+
+    public Evento updateEventStatus(Long codigoEvento, Evento.Status status) {
+        Evento evento = (Evento) eventoRepository.findByCodigoEvento(codigoEvento)
+                .orElseThrow(() -> new EntityNotFoundException("Evento não encontrado"));
+
+        // Only allow status changes (codigoEvento remains the same)
+        evento.setStatus(status);
+
+        return eventoRepository.save(evento);
+    }
+
 }

@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Getter
 public class VagaResponseDTO {
+    private Long codigoVaga;
     private String titulo;
     private String conteudo;
     private String salario;
@@ -14,6 +15,7 @@ public class VagaResponseDTO {
     private String autorUsername;
 
     public VagaResponseDTO(Vaga vaga) {
+        this.codigoVaga = vaga.getCodigoVaga();
         this.titulo = vaga.getTitulo();
         this.conteudo = vaga.getConteudo();
         this.salario = vaga.getSalario();

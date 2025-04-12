@@ -3,7 +3,6 @@ package com.trendsit.trendsit_fase2.dto.relationship;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import lombok.Getter;
 
-import java.util.UUID;
 
 @Getter
 public class FriendDTO {

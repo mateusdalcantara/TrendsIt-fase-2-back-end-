@@ -12,8 +12,6 @@ public class FriendshipResponseDTO {
     private final String friendProfileImageUrl;
     private final LocalDateTime createdAt;
 
-
-
     public FriendshipResponseDTO(Friendship friendship, Profile currentUser) {
         this.status = friendship.getStatus().name();
         this.createdAt = friendship.getCreatedAt();
