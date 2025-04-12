@@ -2,18 +2,9 @@ package com.trendsit.trendsit_fase2.model.profile;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
+import com.trendsit.trendsit_fase2.model.friendship.Friendship;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -23,15 +14,14 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "profiles")
+@Table(name = "profiles", uniqueConstraints = {
+        @UniqueConstraint(columnNames = "friend_number")
+})
 public class Profile implements UserDetails {
 
     @Id
@@ -39,11 +29,14 @@ public class Profile implements UserDetails {
     @Column(columnDefinition = "UUID", updatable = false)
     private UUID id;
 
+    @Column(name = "friend_number", unique = true, nullable = false)
+    private Long friendNumber;
+
     @Enumerated(EnumType.STRING)
     private ProfileRole role = ProfileRole.USER;
 
     private Integer idade;
-    private String curso;
+
 
     @CreationTimestamp
     private LocalDateTime createdAt;
@@ -58,9 +51,39 @@ public class Profile implements UserDetails {
     @JsonManagedReference("comment-author")
     private List<Comentario> comentarios = new ArrayList<>();
 
+    @Column(name = "turma")
+    private String turma;
+
+    @Column(name = "curso")
+    private String curso;
+
+    @Column(name = "profile_image")
+    private String profileImage = "/default-avatar.png";
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "autor_id")
     private Profile autor;
+
+    @Column(name = "last_active")
+    private LocalDateTime lastActive;
+
+    @ManyToMany
+    @JoinTable(
+            name = "follows",
+            joinColumns = @JoinColumn(name = "follower_id"),
+            inverseJoinColumns = @JoinColumn(name = "following_id")
+    )
+    private Set<Profile> following = new HashSet<>();
+
+    @ManyToMany(mappedBy = "following")
+    private Set<Profile> followers = new HashSet<>();
+
+    // Friendship relationships
+    @OneToMany(mappedBy = "userFrom", cascade = CascadeType.ALL)
+    private Set<Friendship> sentFriendRequests = new HashSet<>();
+
+    @OneToMany(mappedBy = "userTo", cascade = CascadeType.ALL)
+    private Set<Friendship> receivedFriendRequests = new HashSet<>();
 
     public Profile() {}
 
@@ -102,5 +125,18 @@ public class Profile implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Profile profile = (Profile) o;
+        return Objects.equals(id, profile.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }

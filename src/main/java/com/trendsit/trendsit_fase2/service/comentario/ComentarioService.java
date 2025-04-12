@@ -3,11 +3,13 @@ package com.trendsit.trendsit_fase2.service.comentario;
 import com.trendsit.trendsit_fase2.dto.comentario.ComentarioDTO;
 import com.trendsit.trendsit_fase2.dto.comentario.ComentarioResponseDTO;
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Service
 public interface ComentarioService {
 
     Comentario adicionarComentario(ComentarioDTO comentarioDTO, UUID autorId, Long postId);

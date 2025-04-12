@@ -18,6 +18,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
+        // Only exclude truly public endpoints
         return path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
                 || path.startsWith("/auth/login")
@@ -63,9 +65,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 Profile profile = profileService.findById(userId)
                         .orElseThrow(() -> new RuntimeException("Profile not found"));
 
-                // Correct placement of authorities list
+                profile.setLastActive(LocalDateTime.now());
+                profileService.updateLastActive(userId);
+
                 List<GrantedAuthority> authorities = List.of(
-                        new SimpleGrantedAuthority("ROLE_" + profile.getRole().name().toUpperCase())
+                        new SimpleGrantedAuthority("ROLE_" + profile.getRole().name())
                 );
 
                 UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(

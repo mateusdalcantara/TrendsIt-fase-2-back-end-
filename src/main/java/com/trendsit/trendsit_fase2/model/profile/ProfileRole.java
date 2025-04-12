@@ -5,7 +5,9 @@ package com.trendsit.trendsit_fase2.model.profile;
  */
 public enum ProfileRole {
     USER("USER"), //0
-    ADMIN("ADMIN"); //1
+    ADMIN("ADMIN"), //1
+    ALUNO("ALUNO"),
+    PROFESSOR("PROFESSOR");
 
     private final String role;
 

@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 // URL SWAGGER http://localhost:8080/swagger-ui/swagger-ui/index.html
-
 @Configuration
 @SecurityScheme(
         name = "Bearer Authentication",

@@ -59,11 +59,35 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
                         .requestMatchers(
                                 "/auth/login",
                                 "/auth/register",
                                 "/auth/check-auth"
                         ).permitAll()
+
+                        // Allow USER/ADMIN to delete their own posts
+                        .requestMatchers(HttpMethod.DELETE, "/api/post/**").hasAnyRole("USER", "ADMIN")
+
+                        // Allow USER/ADMIN to delete their own comments
+                        .requestMatchers(HttpMethod.DELETE, "/api/post/*/comentario/**").hasAnyRole("USER", "ADMIN")
+
+                        // Allow USER/ADMIN to cancel friend requests
+                        .requestMatchers(HttpMethod.DELETE, "/api/friends/**").hasAnyRole("USER", "ADMIN")
+
+                        // Allow USER/ADMIN to DELETE the pending friend request.
+                        .requestMatchers(HttpMethod.DELETE, "/api/follow/**").hasAnyRole("USER", "ADMIN")
+
+                        // Allow USER/ADMIN to exclude the friend on his own friend list.
+                        .requestMatchers(HttpMethod.DELETE, "/api/friends/**").hasAnyRole("USER", "ADMIN")
+
+                        // Allow USER/ADMIN to delete their profile
+                        .requestMatchers(HttpMethod.DELETE, "/profiles/{profileId}").hasAnyRole("USER", "ADMIN")
+
+                        // Allow ADMIN to delete ANYTHING else (generic rule)
+                        .requestMatchers(HttpMethod.DELETE, "/**").hasRole("ADMIN")
+
+                        // Public GET endpoints
                         .requestMatchers(HttpMethod.GET,
                                 "/api/post",
                                 "/api/post/**",
@@ -71,11 +95,16 @@ public class SecurityConfig {
                                 "/events",
                                 "/vagas"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/follow/**").hasAnyRole("USER", "ADMIN")
+
+                        // Swagger/OpenAPI docs
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**"
-                        ).permitAll()//.hasAuthority("ROLE_ADMIN")
+                        ).permitAll()
+
+                        // All other requests require authentication
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

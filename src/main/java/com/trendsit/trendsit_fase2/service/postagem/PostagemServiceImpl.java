@@ -15,6 +15,7 @@ import com.trendsit.trendsit_fase2.service.profile.ProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +41,7 @@ public class PostagemServiceImpl implements PostagemService {
 
 
     @Override
+    @Transactional // Add this annotation
     public Postagem createPost(PostagemDTO postagemDto, UUID autorId) {
         Profile autor = profileRepository.findById(autorId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
@@ -49,7 +51,10 @@ public class PostagemServiceImpl implements PostagemService {
         postagem.setConteudo(postagemDto.getConteudo());
         postagem.setAutor(autor);
 
-        return postagemRepository.save(postagem);
+        // Explicitly save and flush to generate the ID immediately
+        postagem = postagemRepository.saveAndFlush(postagem);
+
+        return postagem;
     }
 
     @Override
@@ -143,4 +148,15 @@ public class PostagemServiceImpl implements PostagemService {
                 .collect(Collectors.toList());
     }
 
+    public List<PostagemResponseDTO> findPostsForUser(UUID userId) {
+        Profile user = profileRepository.findById(userId).orElseThrow();
+        List<UUID> followingIds = user.getFollowing().stream()
+                .map(Profile::getId)
+                .collect(Collectors.toList());
+        followingIds.add(userId);
+
+        return postagemRepository.findByAutorIdIn(followingIds).stream()
+                .map(PostagemResponseDTO::new)
+                .collect(Collectors.toList());
+    }
 }

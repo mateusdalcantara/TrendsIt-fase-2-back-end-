@@ -50,4 +50,23 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleAccessDeniedException(AccessDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ex.getMessage());
     }
+
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ErrorResponse> handleConflict(ConflictException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.CONFLICT.value(), // Status code (ex: 409)
+                ex.getMessage() // Mensagem amigável (ex: "Esse número está em uso")
+        );
+
+        return new ResponseEntity<>(error, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(InvalidFriendNumberException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidFriendNumber(InvalidFriendNumberException ex) {
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                ex.getMessage()
+        );
+        return new ResponseEntity<>(error, HttpStatus.BAD_REQUEST);
+    }
 }

@@ -15,6 +15,7 @@ public class ProfileAdminDTO {
     private String username;
     private Integer idade;
     private String curso;
+    private Long friendNumber;
     private ProfileRole role;
     private LocalDateTime createdAt;
 
@@ -23,6 +24,7 @@ public class ProfileAdminDTO {
         this.username = profile.getUsername();
         this.idade = profile.getIdade();
         this.curso = profile.getCurso();
+        this.friendNumber = profile.getFriendNumber();
         this.role = profile.getRole();
         this.createdAt = profile.getCreatedAt();
     }

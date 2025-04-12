@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 
+// URL SWAGGER http://localhost:8080/swagger-ui/swagger-ui/index.html
 @RestController
 public class SwaggerController {
     @GetMapping("/")

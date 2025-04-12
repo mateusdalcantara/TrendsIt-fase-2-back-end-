@@ -14,4 +14,6 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
     Optional<AuthProfileDTO> findAuthProfileById(UUID userId);
     boolean existsById(UUID id);
     void deleteById(UUID id);
+    boolean existsByFriendNumber(Long friendNumber);
+    Optional<Profile> findByFriendNumber(Long friendNumber);
 }

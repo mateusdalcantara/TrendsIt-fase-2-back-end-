@@ -10,23 +10,15 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class ComentarioResponseDTO {
+    private Long id;
     private String conteudo;
     private LocalDateTime createdAt;
     private AutorDTO autor;
 
     public ComentarioResponseDTO(Comentario comentario) {
+        this.id = comentario.getId();
         this.conteudo = comentario.getConteudo();
         this.createdAt = comentario.getCreatedAt();
         this.autor = new AutorDTO(comentario.getAutor());
-
     }
-    public ComentarioResponseDTO(String conteudo, LocalDateTime createdAt,
-                                 AutorDTO autor) {
-        this.conteudo = conteudo;
-        this.createdAt = createdAt;
-        this.autor = autor;
-    }
-
-
-
 }

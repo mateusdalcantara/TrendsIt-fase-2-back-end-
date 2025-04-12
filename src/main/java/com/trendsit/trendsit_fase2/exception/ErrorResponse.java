@@ -4,11 +4,24 @@ public class ErrorResponse {
     private String message;
     private String requiredPermission;
     private String userPermission;
+    private int status;
+    private String errorCode;
 
     public ErrorResponse(String message, String requiredPermission, String userPermission) {
         this.message = message;
         this.requiredPermission = requiredPermission;
         this.userPermission = userPermission;
+    }
+
+    public ErrorResponse(int status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
+    public ErrorResponse(int status, String message, String errorCode) {
+        this.status = status;
+        this.message = message;
+        this.errorCode = errorCode;
     }
 
     // Getters e Setters

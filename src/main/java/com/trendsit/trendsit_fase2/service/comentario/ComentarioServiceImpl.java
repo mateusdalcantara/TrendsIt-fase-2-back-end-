@@ -13,6 +13,7 @@ import com.trendsit.trendsit_fase2.service.profile.ProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +39,7 @@ public class ComentarioServiceImpl implements ComentarioService {
     }
 
     @Override
+    @Transactional
     public Comentario adicionarComentario(ComentarioDTO comentarioDTO, UUID autorId, Long postId) {
         Profile autor = profileRepository.findById(autorId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
@@ -49,6 +51,9 @@ public class ComentarioServiceImpl implements ComentarioService {
         comentario.setConteudo(comentarioDTO.getConteudo());
         comentario.setAutor(autor);
         comentario.setPostagem(postagem);
+
+        // Force immediate flush to generate the ID
+        comentario = comentarioRepository.saveAndFlush(comentario);
 
         return comentarioRepository.save(comentario);
     }
@@ -88,7 +93,7 @@ public class ComentarioServiceImpl implements ComentarioService {
 
     @Override
     public List<ComentarioResponseDTO> findByPostagemId(Long postId) {
-        List<Comentario> comentarios = comentarioRepository.findByPostagemId(postId); // Matches the @Query method
+        List<Comentario> comentarios = comentarioRepository.findByPostagemId(postId);
         return comentarios.stream()
                 .map(ComentarioResponseDTO::new)
                 .toList();
@@ -126,4 +131,5 @@ public class ComentarioServiceImpl implements ComentarioService {
 
         comentarioRepository.delete(comentario);
     }
+
 }

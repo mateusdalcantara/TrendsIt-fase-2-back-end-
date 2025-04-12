@@ -69,9 +69,9 @@ public class ComentarioController {
     public ResponseEntity<Void> deletarComentario(
             @PathVariable Long postId,
             @PathVariable Long commentId,
-            @AuthenticationPrincipal Profile profile
+            @AuthenticationPrincipal Profile currentUser
     ) {
-        comentarioService.deleteComentario(postId, commentId, profile.getId());
+        comentarioService.deleteComentario(postId, commentId, currentUser.getId());
         return ResponseEntity.noContent().build();
     }
 

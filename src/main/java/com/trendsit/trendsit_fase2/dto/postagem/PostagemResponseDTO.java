@@ -21,6 +21,7 @@ public class PostagemResponseDTO {
     private List<ComentarioResponseDTO> comentarios;
 
     public PostagemResponseDTO(Postagem postagem) {
+        this.id = postagem.getId();
         this.titulo = postagem.getTitulo();
         this.conteudo = postagem.getConteudo();
         this.createdAt = postagem.getCreatedAt();
@@ -28,11 +29,7 @@ public class PostagemResponseDTO {
         this.quantidadeComentarios = postagem.getComentarios().size();
 
         this.comentarios = postagem.getComentarios().stream()
-                .map(comentario -> new ComentarioResponseDTO(
-                        comentario.getConteudo(),
-                        comentario.getCreatedAt(),
-                        new AutorDTO(comentario.getAutor())
-                ))
+                .map(ComentarioResponseDTO::new)
                 .toList();
     }
 

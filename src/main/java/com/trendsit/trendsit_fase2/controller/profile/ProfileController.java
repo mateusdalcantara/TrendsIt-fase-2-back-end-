@@ -96,4 +96,5 @@ public class ProfileController {
         profileService.deleteProfile(profileId);
         return ResponseEntity.noContent().build();
     }
+
 }

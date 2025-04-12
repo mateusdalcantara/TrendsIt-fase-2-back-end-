@@ -5,6 +5,7 @@ import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseAdminDTO;
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
+import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.service.postagem.PostagemService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.persistence.EntityNotFoundException;
@@ -82,19 +83,19 @@ public class PostagemController {
         return ResponseEntity.ok(new PostagemResponseDTO(updatedPost));
     }
 
-
-
-    @DeleteMapping("/{postId}")
+    @DeleteMapping("/api/post/{postId}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
             @AuthenticationPrincipal Profile currentUser
     ) {
         Postagem postagem = postagemService.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
+                .orElseThrow(() -> new EntityNotFoundException("Post not found"));
 
-        if (!postagemService.isOwnerOrAdmin(postagem, currentUser.getId())) {
-            throw new AccessDeniedException("Acesso negado");
+        // Check if user is owner or ADMIN
+        if (!postagem.getAutor().getId().equals(currentUser.getId()) &&
+                !currentUser.getRole().equals(ProfileRole.ADMIN)) {
+            throw new AccessDeniedException("You cannot delete this post");
         }
 
         postagemService.deletePost(postId);

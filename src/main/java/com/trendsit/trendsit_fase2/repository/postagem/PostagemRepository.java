@@ -9,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Repository
 public interface PostagemRepository extends JpaRepository<Postagem, Long> {
@@ -24,4 +25,8 @@ public interface PostagemRepository extends JpaRepository<Postagem, Long> {
     @EntityGraph(attributePaths = {"autor"})
     @Query("SELECT p FROM Postagem p LEFT JOIN FETCH p.autor WHERE p.id = :id")
     Optional<Postagem> findWithAuthorById(@Param("id") Long id);
+
+    List<Postagem> findByAutor_IdIn(List<UUID> autorIds);
+    @Query("SELECT p FROM Postagem p WHERE p.autor.id IN :autorIds")
+    List<Postagem> findByAutorIdIn(@Param("autorIds") List<UUID> autorIds);
 }

@@ -1,6 +1,7 @@
 package com.trendsit.trendsit_fase2.service.profile;
 
 
+import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminUpdateDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfilePublicoDTO;
@@ -8,10 +9,15 @@ import com.trendsit.trendsit_fase2.dto.profile.ProfileRequestDTO;
 import com.trendsit.trendsit_fase2.dto.auth.AuthProfileDTO;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
+import com.trendsit.trendsit_fase2.repository.postagem.PostagemRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
+import com.trendsit.trendsit_fase2.service.relationship.FriendNumberService;
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,10 +26,28 @@ import java.util.stream.Collectors;
 @Service
 public class ProfileServiceImpl implements ProfileService {
 
+    private final PostagemRepository postagemRepository;
     private final ProfileRepository profileRepository;
+    private final FriendNumberService friendNumberService;
 
-    public ProfileServiceImpl(ProfileRepository profileRepository) {
+    // Injeção via construtor
+    @Autowired
+    public ProfileServiceImpl(
+            PostagemRepository postagemRepository,
+            ProfileRepository profileRepository,
+            FriendNumberService friendNumberService
+    ) {
+        this.postagemRepository = postagemRepository;
         this.profileRepository = profileRepository;
+        this.friendNumberService = friendNumberService;
+    }
+
+    @Transactional
+    public void updateProfileImage(UUID userId, String image) {
+        Profile profile = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
+        profile.setProfileImage(image);
+        profileRepository.save(profile);
     }
 
     @Override
@@ -50,7 +74,9 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = new Profile();
         profile.setId(userId);
         profile.setUsername(username);
+        profile.setFriendNumber(friendNumberService.generateUniqueFriendNumber());
         profile.setRole(ProfileRole.USER);
+        profile.setProfileImage("/default-avatar.png");
         return profileRepository.save(profile);
     }
 
@@ -155,5 +181,29 @@ public class ProfileServiceImpl implements ProfileService {
         return profileRepository.save(profile);
     }
 
+    @Transactional
+    @Override
+    public void updateLastActive(UUID userId) {
+        Profile profile = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
+        profile.setLastActive(LocalDateTime.now());
+        profileRepository.save(profile);
+    }
 
+    public boolean isUserOnline(UUID userId) {
+        Profile profile = profileRepository.findById(userId).orElseThrow();
+        return profile.getLastActive().isAfter(LocalDateTime.now().minusMinutes(5));
+    }
+
+    public List<PostagemResponseDTO> findPostsForUser(UUID userId) {
+        Profile user = profileRepository.findById(userId).orElseThrow();
+        List<UUID> followingIds = user.getFollowing().stream()
+                .map(Profile::getId)
+                .collect(Collectors.toList());
+        followingIds.add(userId);
+
+        return postagemRepository.findByAutor_IdIn(followingIds).stream()
+                .map(PostagemResponseDTO::new)
+                .collect(Collectors.toList());
+    }
 }

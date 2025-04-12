@@ -14,6 +14,7 @@ public class ProfilePublicoDTO {
     private String username;
     private Integer idade;
     private String curso;
+    private Long friendNumber;
     private LocalDateTime createdAt;
 
     public ProfilePublicoDTO(Profile profile) {
@@ -21,6 +22,7 @@ public class ProfilePublicoDTO {
         this.username = profile.getUsername();
         this.idade = profile.getIdade();
         this.curso = profile.getCurso();
+        this.friendNumber = profile.getFriendNumber();
         this.createdAt = profile.getCreatedAt();
     }
 }
