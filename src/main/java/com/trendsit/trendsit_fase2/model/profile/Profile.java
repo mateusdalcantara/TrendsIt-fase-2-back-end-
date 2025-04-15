@@ -2,6 +2,7 @@ package com.trendsit.trendsit_fase2.model.profile;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
+import com.trendsit.trendsit_fase2.model.diretorio.Diretorio;
 import com.trendsit.trendsit_fase2.model.friendship.Friendship;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
 import jakarta.persistence.*;
@@ -51,8 +52,9 @@ public class Profile implements UserDetails {
     @JsonManagedReference("comment-author")
     private List<Comentario> comentarios = new ArrayList<>();
 
-    @Column(name = "turma")
-    private String turma;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "diretorio_id")
+    private Diretorio diretorio;
 
     @Column(name = "curso")
     private String curso;
