@@ -27,13 +27,13 @@ public class DiretorioController {
     private final ProfileRepository profileRepository;
 
     @GetMapping("/obterdiretorio")
-    @PreAuthorize("hasAnyRole('PROFESSOR, ADMIN')")
+    @PreAuthorize("hasAnyRole('PROFESSOR', 'ADMIN')")
     public ResponseEntity<List<DiretorioDTO>> findAllDiretorio() {
         return ResponseEntity.ok(diretorioService.findAllDiretorio());
     }
 
     @GetMapping("/alunos")
-    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR, ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
     public ResponseEntity<List<ProfileResponseDTO>> getClassmates(
             @AuthenticationPrincipal User user) {
 
@@ -42,7 +42,7 @@ public class DiretorioController {
     }
 
     @GetMapping("/alunos/{alunoId}")
-    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR, ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
     public ResponseEntity<ProfileResponseDTO> getClassmateById(
             @PathVariable UUID alunoId,
             @AuthenticationPrincipal User user) {
@@ -52,7 +52,7 @@ public class DiretorioController {
     }
 
     @PostMapping("/{turmanome}/createDirectory")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
     public void createDirectory(@PathVariable String turmanome){
         diretorioService.CreateDirectory(turmanome);
     }
