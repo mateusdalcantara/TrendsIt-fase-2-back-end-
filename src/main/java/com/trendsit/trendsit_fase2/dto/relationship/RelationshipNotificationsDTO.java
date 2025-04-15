@@ -1,6 +1,5 @@
 package com.trendsit.trendsit_fase2.dto.relationship;
 
-
 import lombok.Getter;
 import java.util.List;
 

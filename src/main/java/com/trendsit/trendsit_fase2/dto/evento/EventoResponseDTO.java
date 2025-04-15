@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 
 @Getter
 public class EventoResponseDTO {
+    private Long codigoEvento;
     private String titulo;
     private String conteudo;
     private LocalDateTime dataEvento;
@@ -14,6 +15,7 @@ public class EventoResponseDTO {
     private String autorUsername;
 
     public EventoResponseDTO(Evento evento) {
+        this.codigoEvento = evento.getCodigoEvento();
         this.titulo = evento.getTitulo();
         this.conteudo = evento.getConteudo();
         this.dataEvento = evento.getDataEvento();

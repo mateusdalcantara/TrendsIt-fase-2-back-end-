@@ -3,35 +3,40 @@ package com.trendsit.trendsit_fase2.controller.evento;
 import com.trendsit.trendsit_fase2.dto.evento.EventoDTO;
 import com.trendsit.trendsit_fase2.dto.evento.EventoResponseAdminDTO;
 import com.trendsit.trendsit_fase2.dto.evento.EventoResponseDTO;
+import com.trendsit.trendsit_fase2.exception.EntityNotFoundException;
 import com.trendsit.trendsit_fase2.model.evento.Evento;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
+import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
+import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
+import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import com.trendsit.trendsit_fase2.service.evento.EventoService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
 
 import java.nio.file.AccessDeniedException;
 import java.util.List;
+import java.util.UUID;
 
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
 @RequestMapping("/events")
 public class EventoController {
     private final EventoService eventoService;
+    private final EventoRepository eventoRepository;
+    private final ProfileRepository profileRepository;
 
-    public EventoController(EventoService eventoService) {
+    public EventoController(EventoService eventoService,
+                            EventoRepository eventoRepository,
+                            ProfileRepository profileRepository) {
+
         this.eventoService = eventoService;
+        this.eventoRepository = eventoRepository;
+        this.profileRepository = profileRepository;
     }
 
     @GetMapping
@@ -60,24 +65,38 @@ public class EventoController {
         return ResponseEntity.ok(new EventoResponseDTO(evento));
     }
 
-    @PatchMapping("/{id}/status")
+    @PatchMapping("/{codigoEvento}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<EventoResponseDTO> atualizarStatusEvento(
-            @PathVariable Long id,
+            @PathVariable Long codigoEvento,
             @RequestParam Evento.Status status,
-            @AuthenticationPrincipal Profile user) throws AccessDeniedException {
-        Evento updatedEvent = eventoService.updateEventStatus(id, status, user.getId());
+            @AuthenticationPrincipal Profile admin) throws AccessDeniedException { // Inject admin user
+
+        // Pass all 3 required parameters
+        Evento updatedEvent = eventoService.updateEventStatus(codigoEvento, status, admin.getId());
         return ResponseEntity.ok(new EventoResponseDTO(updatedEvent));
     }
 
 
-    @PutMapping("/{id}")
+    @PutMapping("/{codigoEvento}")
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<EventoResponseDTO> atualizarEvento(
-            @PathVariable Long id,
+            @PathVariable Long codigoEvento,
             @Valid @RequestBody EventoDTO eventoDTO,
             @AuthenticationPrincipal Profile user) throws AccessDeniedException {
-        Evento updatedEvent = eventoService.updateEvent(id, eventoDTO, user.getId());
+
+        Evento updatedEvent = eventoService.updateEvent(codigoEvento, eventoDTO, user.getId());
         return ResponseEntity.ok(new EventoResponseDTO(updatedEvent));
     }
+
+    @DeleteMapping("/{codigoEvento}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> deleteEvento(
+            @PathVariable Long codigoEvento,
+            @AuthenticationPrincipal Profile currentUser) throws AccessDeniedException {
+
+        eventoService.deleteEvento(codigoEvento, currentUser.getId());
+        return ResponseEntity.noContent().build();
+    }
+
  }

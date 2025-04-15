@@ -38,7 +38,6 @@ public class Profile implements UserDetails {
 
     private Integer idade;
 
-
     @CreationTimestamp
     private LocalDateTime createdAt;
 
