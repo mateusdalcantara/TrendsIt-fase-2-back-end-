@@ -140,25 +140,12 @@ public class DiretorioServiceImpl {
 
         Profile aluno = profileRepository.findById(alunoId)
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
-
+        if (aluno.getRole() != ProfileRole.ALUNO){
+            throw new IllegalArgumentException("Usuario nao é aluno");
+        }else {
         diretorio.addAluno(aluno);
         diretorioRepository.save(diretorio);
-    }
-
-    @Transactional
-    public void addAlunos(List<UUID> alunosIds, Long turmaId) {
-        Diretorio diretorio = diretorioRepository.findById(turmaId)
-                .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
-
-        List<Profile> alunos = profileRepository.findAllById(alunosIds);
-
-        if (alunos.size() != alunosIds.size()) {
-            throw new EntityNotFoundException("Um ou mais alunos não encontrados");
-        }
-
-        alunos.forEach(diretorio::addAluno);
-        diretorioRepository.save(diretorio);
-    }
+    }}
 
     @Transactional
     public void deleteDiretorio(Long diretorioId) {
