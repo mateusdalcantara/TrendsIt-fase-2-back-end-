@@ -27,12 +27,13 @@ public class DiretorioController {
     private final ProfileRepository profileRepository;
 
     @GetMapping("/obterdiretorio")
+    @PreAuthorize("hasAnyRole('PROFESSOR, ADMIN')")
     public ResponseEntity<List<DiretorioDTO>> findAllDiretorio() {
         return ResponseEntity.ok(diretorioService.findAllDiretorio());
     }
 
     @GetMapping("/alunos")
-    @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR, ADMIN')")
     public ResponseEntity<List<ProfileResponseDTO>> getClassmates(
             @AuthenticationPrincipal User user) {
 
@@ -41,7 +42,7 @@ public class DiretorioController {
     }
 
     @GetMapping("/alunos/{alunoId}")
-    @PreAuthorize("hasAnyRole('STUDENT', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR, ADMIN')")
     public ResponseEntity<ProfileResponseDTO> getClassmateById(
             @PathVariable UUID alunoId,
             @AuthenticationPrincipal User user) {
@@ -92,15 +93,6 @@ public class DiretorioController {
             @RequestParam UUID alunoId) {
 
         diretorioService.addAluno(alunoId, turmaId);
-        return ResponseEntity.ok().build();
-    }
-    @PostMapping("/{turmaId}/alunos/lista")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
-    public ResponseEntity<Void> addAlunos(
-            @PathVariable Long turmaId,
-            @RequestBody List<UUID> alunosIds) {
-
-        diretorioService.addAlunos(alunosIds, turmaId);
         return ResponseEntity.ok().build();
     }
 
