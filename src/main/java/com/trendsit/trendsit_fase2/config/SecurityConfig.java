@@ -49,6 +49,8 @@ public class SecurityConfig {
                     config.setAllowedOrigins(List.of(
                             "https://trendit.bubbleapps.io",
                             "http://trendsitone.fly.dev",
+                            "http://localhost:3000",
+                            "http://localhost:4200",
                             "http://localhost:8080"
                     ));
                     config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
