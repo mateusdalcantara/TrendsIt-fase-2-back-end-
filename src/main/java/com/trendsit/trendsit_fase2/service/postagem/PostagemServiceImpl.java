@@ -47,7 +47,6 @@ public class PostagemServiceImpl implements PostagemService {
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
         Postagem postagem = new Postagem();
-        postagem.setTitulo(postagemDto.getTitulo());
         postagem.setConteudo(postagemDto.getConteudo());
         postagem.setAutor(autor);
 
@@ -89,7 +88,6 @@ public class PostagemServiceImpl implements PostagemService {
         Postagem existingPost = postagemRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
 
-        existingPost.setTitulo(postagemDto.getTitulo());
         existingPost.setConteudo(postagemDto.getConteudo());
 
         return postagemRepository.save(existingPost);

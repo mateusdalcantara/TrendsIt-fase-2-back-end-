@@ -19,8 +19,8 @@ public interface PostagemRepository extends JpaRepository<Postagem, Long> {
     List<Postagem> findAllWithComments();
 
     @EntityGraph(attributePaths = {"autor"})
-    @Query("SELECT p FROM Postagem p WHERE p.titulo LIKE %:keyword%")
-    List<Postagem> searchByKeyword(@Param("keyword") String keyword);
+    @Query("SELECT p FROM Postagem p WHERE p.conteudo LIKE %:keyword%")
+    List<Postagem> searchByKeyword(String keyword);
 
     @EntityGraph(attributePaths = {"autor"})
     @Query("SELECT p FROM Postagem p LEFT JOIN FETCH p.autor WHERE p.id = :id")

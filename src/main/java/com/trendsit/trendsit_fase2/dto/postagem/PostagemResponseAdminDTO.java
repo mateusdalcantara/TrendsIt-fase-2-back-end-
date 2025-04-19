@@ -22,7 +22,6 @@ public class PostagemResponseAdminDTO {
 
     public PostagemResponseAdminDTO(Postagem postagem) {
         this.id = postagem.getId();
-        this.titulo = postagem.getTitulo();
         this.conteudo = postagem.getConteudo();
         this.createdAt = postagem.getCreatedAt();
         this.autor = new AutorAdminDTO(postagem.getAutor());

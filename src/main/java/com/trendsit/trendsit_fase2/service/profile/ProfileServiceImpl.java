@@ -148,13 +148,6 @@ public class ProfileServiceImpl implements ProfileService {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    public Profile updateUserRole(UUID userId, ProfileRole newRole) {
-        Profile profile = profileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
-        profile.setRole(newRole);
-        return profileRepository.save(profile);
-    }
 
     @Override
     public Profile atualizarPerfilAdmin(UUID userId, ProfileAdminUpdateDTO dto) {

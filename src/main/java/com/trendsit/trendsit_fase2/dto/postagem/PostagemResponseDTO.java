@@ -13,7 +13,6 @@ import java.util.List;
 @Setter
 public class PostagemResponseDTO {
     private Long id;
-    private String titulo;
     private String conteudo;
     private LocalDateTime createdAt;
     private AutorDTO autor;
@@ -22,7 +21,6 @@ public class PostagemResponseDTO {
 
     public PostagemResponseDTO(Postagem postagem) {
         this.id = postagem.getId();
-        this.titulo = postagem.getTitulo();
         this.conteudo = postagem.getConteudo();
         this.createdAt = postagem.getCreatedAt();
         this.autor = new AutorDTO(postagem.getAutor());

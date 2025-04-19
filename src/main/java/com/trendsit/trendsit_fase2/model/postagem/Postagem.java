@@ -2,16 +2,7 @@ package com.trendsit.trendsit_fase2.model.postagem;
 
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
@@ -19,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @Setter
@@ -28,9 +20,6 @@ public class Postagem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(nullable = false, length = 500)
-    private String titulo;
 
     @Column(nullable = false)
     private String conteudo;
@@ -45,4 +34,5 @@ public class Postagem {
 
     @OneToMany(mappedBy = "postagem", fetch = FetchType.LAZY)
     private List<Comentario> comentarios = new ArrayList<>();
+
 }

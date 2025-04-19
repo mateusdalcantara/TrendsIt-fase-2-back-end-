@@ -31,7 +31,6 @@ public interface ProfileService {
     List<ProfileRequestDTO> findAllProfiles();
     List<ProfileAdminDTO> findAllForAdmin();
     List<ProfilePublicoDTO> findAllPublicoProfiles();
-    Profile updateUserRole(UUID userId, ProfileRole newRole);
     Profile atualizarPerfilAdmin(UUID userId, ProfileAdminUpdateDTO dto);
     @Transactional
     void updateLastActive(UUID userId);

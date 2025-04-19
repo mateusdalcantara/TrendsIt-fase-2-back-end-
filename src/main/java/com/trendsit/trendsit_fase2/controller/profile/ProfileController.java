@@ -5,7 +5,6 @@ import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminUpdateDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfilePublicoDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileRequestDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileUpdateDTO;
-import com.trendsit.trendsit_fase2.dto.role.AtualizarRoleDTO;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.service.postagem.PostagemService;
 import com.trendsit.trendsit_fase2.service.profile.ProfileService;
@@ -56,15 +55,6 @@ public class ProfileController {
     public ResponseEntity<List<ProfileAdminDTO>> getAllUsersAdmin() {
         List<ProfileAdminDTO> users = profileService.findAllForAdmin();
         return ResponseEntity.ok(users);
-    }
-
-    @PostMapping("/admin/atualizar-role")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Profile> updateUserRole(
-            @Valid @RequestBody AtualizarRoleDTO request
-    ) {
-        Profile updatedProfile = profileService.updateUserRole(request.userId(), request.novoRole());
-        return ResponseEntity.ok(updatedProfile);
     }
 
     @PutMapping("/atualizar-meu-perfil")
