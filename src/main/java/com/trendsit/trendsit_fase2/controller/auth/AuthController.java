@@ -11,36 +11,29 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
 
-
-
 @RestController
-@RequestMapping("/auth")
+@RequestMapping(path = "/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 public class AuthController {
+
+    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
     private final ProfileRepository profileRepository;
     private final SupabaseAuthService supabaseAuthService;
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
-    public AuthController(ProfileRepository profileRepository, SupabaseAuthService supabaseAuthService) {
+    public AuthController(ProfileRepository profileRepository,
+                          SupabaseAuthService supabaseAuthService) {
         this.profileRepository = profileRepository;
         this.supabaseAuthService = supabaseAuthService;
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@Valid @RequestBody RegistroRequest request) {
+    @PostMapping(path = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<?> register(@Valid @RequestBody RegistroRequest request) {
         try {
             return supabaseAuthService.registro(
                     request.getEmail(),
@@ -48,42 +41,54 @@ public class AuthController {
                     request.getUsername()
             );
         } catch (Exception e) {
-            logger.error("Erro no registro: {}", e.getMessage());
-            return ResponseEntity.internalServerError().body("Erro interno no servidor");
+            logger.error("Erro no registro:", e);
+            return ResponseEntity
+                    .status(500)
+                    .body("Erro interno no servidor");
         }
     }
 
+    @PostMapping(path = "/login")
+    public ResponseEntity<LoginResponse> login(
+            @RequestHeader("Authorization") String authHeader) {
+        // extrai apenas o token (sem "Bearer ")
+        String token = authHeader.startsWith("Bearer ")
+                ? authHeader.substring(7)
+                : authHeader;
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> login(@RequestHeader("Authorization") String authHeader) {
-        // Decodifica e inspeciona token
-        DecodedJWT jwt = JwtUtils.decodeToken(authHeader);
-        System.out.println("JWT Claims: " + JwtUtils.getAllClaims(jwt));
+        DecodedJWT jwt = JwtUtils.decodeToken(token);
+        logger.debug("JWT Claims: {}", JwtUtils.getAllClaims(jwt));
 
-        // Extrai userId do sub
-        String userId = JwtUtils.getUserId(jwt);
-        System.out.println("Usuário autenticado (sub): " + userId);
+        // sub vem como String UUID
+        String sub = JwtUtils.getUserId(jwt);
+        UUID userId = UUID.fromString(sub);
 
-        // Busca ou cria Profile
-        Profile profile = profileRepository.findById(UUID.fromString(userId))
+        // busca ou cria profile
+        Profile profile = profileRepository.findById(userId)
                 .orElseGet(() -> {
-                    System.out.println("Criando novo Profile para ID " + userId);
+                    logger.info("Criando novo Profile para ID {}", sub);
                     Profile novo = new Profile();
-                    novo.setId(UUID.fromString(userId));
-                    // Se você armazenou username em user_metadata no Supabase:
-                    Object um = jwt.getClaim("user_metadata").asMap().get("username");
-                    novo.setUsername(um != null ? um.toString() : "user_" + userId.substring(0,8));
+                    novo.setId(userId);
+                    Object um = jwt.getClaim("user_metadata")
+                            .asMap()
+                            .get("username");
+                    novo.setUsername(
+                            um != null
+                                    ? um.toString()
+                                    : "user_" + sub.substring(0, 8)
+                    );
                     novo.setRole(ProfileRole.USER);
-                    // Gere friendNumber único
                     novo.setFriendNumber(System.currentTimeMillis());
                     return profileRepository.save(novo);
                 });
 
-        // Retorna LoginResponse
-        return ResponseEntity.ok(new LoginResponse(
-                profile.getId().toString(),
+        // retorna JWT + dados de profile
+        LoginResponse resp = new LoginResponse(
+                token,
+                profile.getId(),
                 profile.getUsername(),
                 profile.getRole().name()
-        ));
+        );
+        return ResponseEntity.ok(resp);
     }
 }

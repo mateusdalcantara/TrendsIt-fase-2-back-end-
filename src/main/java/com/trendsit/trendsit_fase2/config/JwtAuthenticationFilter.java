@@ -2,13 +2,17 @@ package com.trendsit.trendsit_fase2.config;
 
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.service.profile.ProfileService;
+import com.trendsit.trendsit_fase2.util.JwtUtils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,68 +28,64 @@ import java.util.UUID;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
     private final ProfileService profileService;
-    private final String supabaseSecret;
+    private final byte[] signingKey;
 
     public JwtAuthenticationFilter(ProfileService profileService, String supabaseSecret) {
         this.profileService = profileService;
-        this.supabaseSecret = supabaseSecret;
+        this.signingKey = supabaseSecret.getBytes(StandardCharsets.UTF_8);
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
-        // Only exclude truly public endpoints
         return path.startsWith("/v3/api-docs")
                 || path.startsWith("/swagger-ui")
-                || path.startsWith("/auth/login")
-                || path.startsWith("/auth/register")
-                || path.startsWith("/auth/check-auth");
+                || path.startsWith("/auth");
     }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
-        String token = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        try {
-            if (token != null && token.startsWith("Bearer ")) {
-                token = token.substring(7);
-
+        if (header != null && header.startsWith("Bearer ")) {
+            String token = header.substring(7);
+            try {
                 Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(supabaseSecret.getBytes(StandardCharsets.UTF_8))
+                        .setSigningKey(Keys.hmacShaKeyFor(signingKey))
                         .build()
                         .parseClaimsJws(token)
                         .getBody();
 
                 UUID userId = UUID.fromString(claims.getSubject());
-                System.out.println("Usuário autenticado: " + userId);
+                logger.debug("Authenticated user ID: {}", userId);
 
                 Profile profile = profileService.findById(userId)
-                        .orElseThrow(() -> new RuntimeException("Profile not found"));
+                        .orElseThrow(() -> new RuntimeException("Profile not found for ID: " + userId));
 
-                profile.setLastActive(LocalDateTime.now());
+                // Atualiza último acesso
                 profileService.updateLastActive(userId);
 
                 List<GrantedAuthority> authorities = List.of(
                         new SimpleGrantedAuthority("ROLE_" + profile.getRole().name())
                 );
 
-                UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                        profile,
-                        null,
-                        authorities
-                );
-                SecurityContextHolder.getContext().setAuthentication(auth);
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(profile, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
+            } catch (ExpiredJwtException ex) {
+                logger.warn("JWT expired: {}", ex.getMessage());
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado. Faça login novamente.");
+                return;
+            } catch (Exception ex) {
+                logger.error("Erro ao validar token JWT: {}", ex.getMessage());
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Autenticação inválida");
+                return;
             }
-        } catch (ExpiredJwtException e) {
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token expirado. Faça login novamente.");
-            return;
-        } catch (Exception e) {
-            System.out.println("Erro ao processar o token: " + e.getMessage());
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Autenticação inválida");
-            return;
         }
 
         filterChain.doFilter(request, response);
