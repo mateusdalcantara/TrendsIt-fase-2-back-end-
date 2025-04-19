@@ -81,19 +81,33 @@ public class SupabaseAuthService {
         }
     }
 
-    public ResponseEntity<String> login(String email, String password) {
+    public String login(String email, String password) {
         HttpHeaders headers = new HttpHeaders();
         headers.set("apikey", supabaseKey);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        Map<String, String> body = new HashMap<>();
-        body.put("email", email);
-        body.put("password", password);
+        Map<String, String> body = Map.of(
+                "email", email,
+                "password", password
+        );
 
-        return restTemplate.postForEntity(
+        ResponseEntity<String> response = restTemplate.postForEntity(
                 supabaseUrl + "/auth/v1/token?grant_type=password",
                 new HttpEntity<>(body, headers),
                 String.class
         );
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new RuntimeException(
+                    "Falha ao autenticar: status " + response.getStatusCodeValue()
+            );
+        }
+
+        try {
+            // usa seu método existente para pegar só o access_token
+            return extractSupabaseToken(response.getBody());
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("Não foi possível extrair access_token", e);
+        }
     }
 }

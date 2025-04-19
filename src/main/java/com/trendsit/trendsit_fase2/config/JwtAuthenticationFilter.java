@@ -1,5 +1,6 @@
 package com.trendsit.trendsit_fase2.config;
 
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.service.profile.ProfileService;
 import com.trendsit.trendsit_fase2.util.JwtUtils;
@@ -48,31 +49,33 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+                                    FilterChain filterChain)
+            throws ServletException, IOException {
         String header = request.getHeader(HttpHeaders.AUTHORIZATION);
 
         if (header != null && header.startsWith("Bearer ")) {
+            // 1) remove the "Bearer " prefix
             String token = header.substring(7);
-            try {
-                Claims claims = Jwts.parserBuilder()
-                        .setSigningKey(Keys.hmacShaKeyFor(signingKey))
-                        .build()
-                        .parseClaimsJws(token)
-                        .getBody();
 
-                UUID userId = UUID.fromString(claims.getSubject());
+            try {
+                // 2) decode the clean JWT
+                DecodedJWT jwt = JwtUtils.decodeToken(token);
+
+                // 3) extract userId from the token subject
+                UUID userId = UUID.fromString(JwtUtils.getUserId(jwt));
                 logger.debug("Authenticated user ID: {}", userId);
 
+                // 4) load profile (or fail)
                 Profile profile = profileService.findById(userId)
                         .orElseThrow(() -> new RuntimeException("Profile not found for ID: " + userId));
 
-                // Atualiza último acesso
+                // 5) update last active timestamp via service
                 profileService.updateLastActive(userId);
 
+                // 6) build authorities and Authentication
                 List<GrantedAuthority> authorities = List.of(
                         new SimpleGrantedAuthority("ROLE_" + profile.getRole().name())
                 );
-
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(profile, null, authorities);
                 SecurityContextHolder.getContext().setAuthentication(authentication);
@@ -88,6 +91,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             }
         }
 
+        // continue filter chain if everything is OK (or no token present)
         filterChain.doFilter(request, response);
     }
 }

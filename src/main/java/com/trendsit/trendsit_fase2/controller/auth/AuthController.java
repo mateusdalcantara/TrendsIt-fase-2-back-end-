@@ -1,5 +1,6 @@
 package com.trendsit.trendsit_fase2.controller.auth;
 
+import com.trendsit.trendsit_fase2.dto.auth.AuthRequest;
 import com.trendsit.trendsit_fase2.dto.auth.LoginResponse;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
@@ -48,47 +49,38 @@ public class AuthController {
         }
     }
 
-    @PostMapping(path = "/login")
+    @PostMapping(path = "/login", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<LoginResponse> login(
-            @RequestHeader("Authorization") String authHeader) {
-        // extrai apenas o token (sem "Bearer ")
-        String token = authHeader.startsWith("Bearer ")
-                ? authHeader.substring(7)
-                : authHeader;
+            @Valid @RequestBody AuthRequest request) {
+        // Autentica credenciais e recebe JWT do Supabase
+        String token = String.valueOf(supabaseAuthService.login(request.getEmail(), request.getPassword()));
+        logger.debug("JWT recebido: {}", token);
 
+        // Decodifica o token para extrair o subject (userId)
         DecodedJWT jwt = JwtUtils.decodeToken(token);
-        logger.debug("JWT Claims: {}", JwtUtils.getAllClaims(jwt));
-
-        // sub vem como String UUID
         String sub = JwtUtils.getUserId(jwt);
         UUID userId = UUID.fromString(sub);
 
-        // busca ou cria profile
+        // Busca ou cria profile
         Profile profile = profileRepository.findById(userId)
                 .orElseGet(() -> {
                     logger.info("Criando novo Profile para ID {}", sub);
                     Profile novo = new Profile();
                     novo.setId(userId);
-                    Object um = jwt.getClaim("user_metadata")
-                            .asMap()
-                            .get("username");
-                    novo.setUsername(
-                            um != null
-                                    ? um.toString()
-                                    : "user_" + sub.substring(0, 8)
-                    );
+                    Object um = jwt.getClaim("user_metadata").asMap().get("username");
+                    novo.setUsername(um != null ? um.toString() : "user_" + sub.substring(0, 8));
                     novo.setRole(ProfileRole.USER);
                     novo.setFriendNumber(System.currentTimeMillis());
                     return profileRepository.save(novo);
                 });
 
-        // retorna JWT + dados de profile
-        LoginResponse resp = new LoginResponse(
+        // Retorna token e dados do usuário
+        LoginResponse response = new LoginResponse(
                 token,
                 profile.getId(),
                 profile.getUsername(),
                 profile.getRole().name()
         );
-        return ResponseEntity.ok(resp);
+        return ResponseEntity.ok(response);
     }
 }
