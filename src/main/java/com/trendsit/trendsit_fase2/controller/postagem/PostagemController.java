@@ -1,6 +1,7 @@
 package com.trendsit.trendsit_fase2.controller.postagem;
 
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemDTO;
+import com.trendsit.trendsit_fase2.dto.postagem.PostagemRequestDTO;
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseAdminDTO;
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
@@ -22,6 +23,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import com.trendsit.trendsit_fase2.dto.postagem.PostagemRequestDTO;
+import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
+
 
 import java.util.List;
 
@@ -39,17 +43,18 @@ public class PostagemController {
     @PostMapping
     @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
     public ResponseEntity<PostagemResponseDTO> createPost(
-            @Valid @RequestBody PostagemDTO postagemDto,
+            @Valid @RequestBody PostagemRequestDTO postagemRequest,
             @AuthenticationPrincipal Profile profile
     ) {
-        Postagem postagem = postagemService.createPost(postagemDto, profile.getId());
-        return ResponseEntity.ok(new PostagemResponseDTO(postagem));
+        Postagem postagem = postagemService.createPost(postagemRequest, profile.getId());
+        PostagemResponseDTO responseDTO = new PostagemResponseDTO(postagem); // Use o construtor que recebe a entidade
+        return ResponseEntity.ok(responseDTO);
     }
 
     @GetMapping
     public ResponseEntity<List<PostagemResponseDTO>> getAllPosts() {
-        List<PostagemResponseDTO> posts = postagemService.findAllPosts();
-        return ResponseEntity.ok(posts);
+        List<PostagemResponseDTO> postagens = postagemService.findAllPosts();
+        return ResponseEntity.ok(postagens);
     }
 
     @GetMapping("/admin/Posts")
@@ -59,9 +64,16 @@ public class PostagemController {
         return ResponseEntity.ok(posts);
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<PostagemResponseDTO> getPostById(@PathVariable Long id) {
+        PostagemResponseDTO postagem = postagemService.findPostById(id);
+        return ResponseEntity.ok(postagem);
+    }
+
     @GetMapping("/{postId}")
-    public ResponseEntity<PostagemResponseDTO> GetIdPOST(@PathVariable Long postId){
-        Postagem postagem = postagemService.findById(postId).orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
+    public ResponseEntity<PostagemResponseDTO> GetIdPOST(@PathVariable Long postId) {
+        Postagem postagem = postagemService.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
         return ResponseEntity.ok(new PostagemResponseDTO(postagem));
     }
 

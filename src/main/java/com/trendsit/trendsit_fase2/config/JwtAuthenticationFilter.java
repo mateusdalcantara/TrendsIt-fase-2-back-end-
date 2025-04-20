@@ -70,7 +70,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         .orElseThrow(() -> new RuntimeException("Profile not found for ID: " + userId));
 
                 // 5) update last active timestamp via service
-                profileService.updateLastActive(userId);
+                //profileService.updateLastActive(userId);
 
                 // 6) build authorities and Authentication
                 List<GrantedAuthority> authorities = List.of(

@@ -1,13 +1,10 @@
 package com.trendsit.trendsit_fase2.controller.profile;
 
-import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminDTO;
-import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminUpdateDTO;
-import com.trendsit.trendsit_fase2.dto.profile.ProfilePublicoDTO;
-import com.trendsit.trendsit_fase2.dto.profile.ProfileRequestDTO;
-import com.trendsit.trendsit_fase2.dto.profile.ProfileUpdateDTO;
+import com.trendsit.trendsit_fase2.exception.EntityNotFoundException;
+import com.trendsit.trendsit_fase2.service.profile.ProfileService;
+import com.trendsit.trendsit_fase2.dto.profile.*;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.service.postagem.PostagemService;
-import com.trendsit.trendsit_fase2.service.profile.ProfileService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -16,7 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -49,6 +45,23 @@ public class ProfileController {
         List<ProfilePublicoDTO> profiles = profileService.findAllPublicoProfiles();
         return ResponseEntity.ok(profiles);
     }
+
+    @GetMapping("/meu-perfil")
+    public ResponseEntity<ProfileResponseDTO> getMeuPerfil(
+            @AuthenticationPrincipal Profile usuarioAtualPrincipal
+    ) {
+        // 1) pega o ID do principal
+        UUID meuId = usuarioAtualPrincipal.getId();
+
+        // 2) busca no banco a entidade completa
+        Profile perfil = profileService.findById(meuId)
+                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
+
+        // 3) monta o DTO a partir do registro no banco
+        ProfileResponseDTO dto = new ProfileResponseDTO(perfil);
+        return ResponseEntity.ok(dto);
+    }
+
 
     @GetMapping("/admin/listar-usuarios")
     @PreAuthorize("hasRole('ADMIN')")
@@ -85,6 +98,19 @@ public class ProfileController {
     public ResponseEntity<Void> deleteProfile(@PathVariable UUID profileId) {
         profileService.deleteProfile(profileId);
         return ResponseEntity.noContent().build();
+    }
+
+    //BFS para garantir o caminho mais curto
+    @GetMapping("/{alvoId}/caminho-mais-curto")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> getCaminho(
+            @PathVariable UUID alvoId,
+            @AuthenticationPrincipal Profile usuarioAtual) {
+        List<String> caminho = profileService.obterCaminhoMaisCurto(usuarioAtual.getId(), alvoId);
+        if (caminho.isEmpty()) {
+            return ResponseEntity.ok("Nenhum caminho encontrado.");
+        }
+        return ResponseEntity.ok(String.join(" → ", caminho));
     }
 
 }

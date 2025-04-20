@@ -1,12 +1,23 @@
 package com.trendsit.trendsit_fase2.dto.comentario;
 
-import jakarta.validation.constraints.NotBlank;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
+import lombok.NoArgsConstructor;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
-@Setter
 public class ComentarioDTO {
-    @NotBlank(message = "O conteúdo do comentário não pode estar vazio")
+    private Long id;
     private String conteudo;
+    private LocalDateTime createdAt;
+    private Long postagemId;
+
+    public ComentarioDTO(Long id, String conteudo, LocalDateTime createdAt, Long id1) {
+      this.id = id;
+      this.conteudo = conteudo;
+      this.createdAt = createdAt;
+      this.postagemId = getPostagemId();
+    }
 }

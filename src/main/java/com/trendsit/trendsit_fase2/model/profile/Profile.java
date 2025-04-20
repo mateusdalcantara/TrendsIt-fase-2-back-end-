@@ -1,18 +1,23 @@
 package com.trendsit.trendsit_fase2.model.profile;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
 import com.trendsit.trendsit_fase2.model.diretorio.Diretorio;
 import com.trendsit.trendsit_fase2.model.friendship.Friendship;
+import com.trendsit.trendsit_fase2.model.group.Group;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import net.minidev.json.annotate.JsonIgnore;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -20,7 +25,18 @@ import java.util.*;
 @Getter
 @Setter
 @Entity
-@Table(name = "profiles", uniqueConstraints = {
+@JsonIgnoreProperties({
+        "friends",
+        "following",
+        "followers",
+        "sentFriendRequests",
+        "receivedFriendRequests",
+        "postagens",
+        "comentarios",
+        "diretorio",
+        "group",
+        "autor"
+})@Table(name = "profiles", uniqueConstraints = {
         @UniqueConstraint(columnNames = "friend_number")
 })
 public class Profile implements UserDetails {
@@ -44,16 +60,24 @@ public class Profile implements UserDetails {
     @Column(name = "username", nullable = false)
     private String username;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL)
     private List<Postagem> postagens = new ArrayList<>();
 
+    @JsonIgnore
     @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL)
     @JsonManagedReference("comment-author")
     private List<Comentario> comentarios = new ArrayList<>();
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "diretorio_id")
     private Diretorio diretorio;
+
+    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "group_id")
+    private Group group;
 
     @Column(name = "curso")
     private String curso;
@@ -61,12 +85,18 @@ public class Profile implements UserDetails {
     @Column(name = "profile_image")
     private String profileImage = "/default-avatar.png";
 
+    @JsonBackReference
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "autor_id")
     private Profile autor;
 
-    @Column(name = "last_active")
-    private LocalDateTime lastActive;
+    @ManyToMany
+    @JoinTable(
+            name = "user_friends",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "friend_id")
+    )
+    private List<Profile> friends = new ArrayList<>();
 
     @ManyToMany
     @JoinTable(
@@ -100,7 +130,7 @@ public class Profile implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of(new SimpleGrantedAuthority(role.name()));
+        return List.of(new SimpleGrantedAuthority("ROLE_" + role.name()));
     }
 
     @Override

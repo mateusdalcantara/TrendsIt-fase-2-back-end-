@@ -1,5 +1,6 @@
 package com.trendsit.trendsit_fase2.service.postagem;
 
+import com.trendsit.trendsit_fase2.dto.postagem.PostagemRequestDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminDTO;
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemDTO;
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseAdminDTO;
@@ -40,27 +41,25 @@ public class PostagemServiceImpl implements PostagemService {
     }
 
 
+    @Transactional
     @Override
-    @Transactional // Add this annotation
-    public Postagem createPost(PostagemDTO postagemDto, UUID autorId) {
+    public Postagem createPost(PostagemRequestDTO postagemRequest, UUID autorId) {
         Profile autor = profileRepository.findById(autorId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
         Postagem postagem = new Postagem();
-        postagem.setConteudo(postagemDto.getConteudo());
+        postagem.setConteudo(postagemRequest.getConteudo());
         postagem.setAutor(autor);
 
-        // Explicitly save and flush to generate the ID immediately
-        postagem = postagemRepository.saveAndFlush(postagem);
-
-        return postagem;
+        return postagemRepository.save(postagem);
     }
 
-    @Override
+
     public List<PostagemResponseDTO> findAllPosts() {
-        return postagemRepository.findAllWithComments().stream()
+        List<Postagem> postagens = postagemRepository.findAllWithAutor(); // Usa a consulta com JOIN FETCH
+        return postagens.stream()
                 .map(PostagemResponseDTO::new)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Override
@@ -68,6 +67,12 @@ public class PostagemServiceImpl implements PostagemService {
         return postagemRepository.findAllWithComments().stream()
                 .map(PostagemResponseAdminDTO::new)
                 .collect(Collectors.toList());
+    }
+
+    public PostagemResponseDTO findPostById(Long id) {
+        Postagem postagem = postagemRepository.findByIdWithAutor(id) // Usa a consulta com JOIN FETCH
+                .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
+        return new PostagemResponseDTO(postagem);
     }
 
     @Override
@@ -146,6 +151,7 @@ public class PostagemServiceImpl implements PostagemService {
                 .collect(Collectors.toList());
     }
 
+    @Override
     public List<PostagemResponseDTO> findPostsForUser(UUID userId) {
         Profile user = profileRepository.findById(userId).orElseThrow();
         List<UUID> followingIds = user.getFollowing().stream()

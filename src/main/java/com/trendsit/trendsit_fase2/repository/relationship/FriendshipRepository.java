@@ -46,4 +46,6 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
 
     List<Friendship> findByUserToIdAndStatus(UUID userId, Friendship.Status status);
     List<Friendship> findByUserFromIdAndStatus(UUID userId, Friendship.Status status);
+    List<Friendship> findAllByUserFromAndStatus(Profile from, Friendship.Status status);
+    List<Friendship> findAllByUserToAndStatus(Profile to,   Friendship.Status status);
 }

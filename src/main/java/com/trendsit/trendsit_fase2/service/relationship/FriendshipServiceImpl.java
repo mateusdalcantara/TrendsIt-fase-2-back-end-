@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class FriendshipServiceImpl implements FriendshipService {
@@ -29,11 +30,23 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
+    @Transactional
     public Friendship acceptFriendRequest(Long friendshipId) {
-        Friendship friendship = friendshipRepository.findById(friendshipId)
-                .orElseThrow(() -> new EntityNotFoundException("Friendship not found"));
-        friendship.setStatus(Friendship.Status.ACCEPTED);
-        return friendshipRepository.save(friendship); // Return the saved entity
+        Friendship f = friendshipRepository.findById(friendshipId)
+                .orElseThrow(() -> new EntityNotFoundException("Solicitação não encontrada"));
+
+        // 1) marca o original como ACCEPTED
+        f.setStatus(Friendship.Status.ACCEPTED);
+        friendshipRepository.save(f);
+
+        // 2) cria o recíproco: userTo → userFrom
+        Friendship reciprocal = new Friendship();
+        reciprocal.setUserFrom(f.getUserTo());
+        reciprocal.setUserTo(f.getUserFrom());
+        reciprocal.setStatus(Friendship.Status.ACCEPTED);
+        friendshipRepository.save(reciprocal);
+
+        return f;
     }
 
     @Override
@@ -84,21 +97,27 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Profile> getFriends(UUID userId) {
-        Profile user = profileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        Profile me = profileRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
-        List<Friendship> friendships = friendshipRepository.findByUserAndStatus(
-                user,
-                Friendship.Status.ACCEPTED
-        );
+        // amizades onde eu sou quem enviou e fui aceito
+        List<Profile> sent  = friendshipRepository.findAllByUserFromAndStatus(me, Friendship.Status.ACCEPTED)
+                .stream().map(Friendship::getUserTo)
+                .collect(Collectors.toList());
 
-        return friendships.stream()
-                .map(f -> f.getUserFrom().equals(user) ? f.getUserTo() : f.getUserFrom())
-                .filter(profile -> !profile.getId().equals(userId))  // Remove self-friendships
+        // amizades onde eu recebi e aceitei
+        List<Profile> recv  = friendshipRepository.findAllByUserToAndStatus(me, Friendship.Status.ACCEPTED)
+                .stream().map(Friendship::getUserFrom)
+                .collect(Collectors.toList());
+
+        // junta os dois
+        return Stream.concat(sent.stream(), recv.stream())
                 .distinct()
                 .collect(Collectors.toList());
     }
+
 
 
     @Override

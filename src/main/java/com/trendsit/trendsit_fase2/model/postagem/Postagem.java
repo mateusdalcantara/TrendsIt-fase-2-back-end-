@@ -5,6 +5,7 @@ import com.trendsit.trendsit_fase2.model.comentario.Comentario;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import net.minidev.json.annotate.JsonIgnore;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -33,6 +34,7 @@ public class Postagem {
     private Profile autor;
 
     @OneToMany(mappedBy = "postagem", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Comentario> comentarios = new ArrayList<>();
 
 }

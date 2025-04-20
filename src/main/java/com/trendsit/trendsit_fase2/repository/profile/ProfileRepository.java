@@ -2,10 +2,12 @@ package com.trendsit.trendsit_fase2.repository.profile;
 
 import com.trendsit.trendsit_fase2.dto.auth.AuthProfileDTO;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
 
 import java.util.Collection;
 import java.util.List;
@@ -24,4 +26,19 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
     @Query("SELECT p FROM Profile p WHERE p.diretorio.id = :diretorioId")
     List<Profile> findAllByDiretorioId(@Param("diretorioId") Long diretorioId);
 
+    @Query("""
+        select distinct p 
+        from Profile p
+        left join fetch p.following f
+        left join fetch f.postagens
+        left join fetch f.comentarios
+        where p.id = :id
+    """)
+    Optional<Profile> findByIdWithFriendsContent(@Param("id") UUID id);
+
+    Optional<Profile> findById(UUID userId);
+
+    @Query("SELECT p FROM Profile p LEFT JOIN FETCH p.following")
+    @EntityGraph(attributePaths = {"following"})
+    List<Profile> findAllWithFollowing();
 }

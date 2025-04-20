@@ -1,35 +1,27 @@
 package com.trendsit.trendsit_fase2.dto.postagem;
 
-import com.trendsit.trendsit_fase2.dto.autor.AutorDTO;
-import com.trendsit.trendsit_fase2.dto.comentario.ComentarioResponseDTO;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
 import lombok.Getter;
-import lombok.Setter;
-
+import lombok.AllArgsConstructor;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.UUID;
 
 @Getter
-@Setter
+@AllArgsConstructor
 public class PostagemResponseDTO {
     private Long id;
     private String conteudo;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
     private LocalDateTime createdAt;
-    private AutorDTO autor;
-    private int quantidadeComentarios;
-    private List<ComentarioResponseDTO> comentarios;
+
+    private String autorUsername;
 
     public PostagemResponseDTO(Postagem postagem) {
         this.id = postagem.getId();
         this.conteudo = postagem.getConteudo();
         this.createdAt = postagem.getCreatedAt();
-        this.autor = new AutorDTO(postagem.getAutor());
-        this.quantidadeComentarios = postagem.getComentarios().size();
-
-        this.comentarios = postagem.getComentarios().stream()
-                .map(ComentarioResponseDTO::new)
-                .toList();
+        this.autorUsername = postagem.getAutor().getUsername(); // Garanta que postagem.getAutor() não é null
     }
-
 }
-

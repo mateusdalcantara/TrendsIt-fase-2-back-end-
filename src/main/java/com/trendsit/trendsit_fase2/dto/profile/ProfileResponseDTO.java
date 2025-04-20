@@ -18,6 +18,8 @@ public class ProfileResponseDTO {
     private Integer idade;
     private String curso;
     private ProfileRole role;
+    private Long friendNumber;
+    private String profileImage;
     private LocalDateTime createdAt;
 
     public ProfileResponseDTO(Profile profile) {
@@ -26,6 +28,8 @@ public class ProfileResponseDTO {
         this.idade = profile.getIdade();
         this.curso = profile.getCurso();
         this.role = profile.getRole();
+        this.friendNumber = profile.getFriendNumber();
+        this.profileImage = profile.getProfileImage();
         this.createdAt = profile.getCreatedAt();
     }
 }

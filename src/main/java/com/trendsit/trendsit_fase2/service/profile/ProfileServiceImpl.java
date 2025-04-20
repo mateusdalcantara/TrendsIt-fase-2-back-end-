@@ -1,14 +1,16 @@
 package com.trendsit.trendsit_fase2.service.profile;
 
 
+import com.trendsit.trendsit_fase2.dto.comentario.ComentarioDTO;
+import com.trendsit.trendsit_fase2.dto.postagem.PostagemDTO;
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
-import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminDTO;
-import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminUpdateDTO;
-import com.trendsit.trendsit_fase2.dto.profile.ProfilePublicoDTO;
-import com.trendsit.trendsit_fase2.dto.profile.ProfileRequestDTO;
+import com.trendsit.trendsit_fase2.dto.profile.*;
 import com.trendsit.trendsit_fase2.dto.auth.AuthProfileDTO;
+import com.trendsit.trendsit_fase2.model.comentario.Comentario;
+import com.trendsit.trendsit_fase2.model.postagem.Postagem;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
+import com.trendsit.trendsit_fase2.repository.comentario.ComentarioRepository;
 import com.trendsit.trendsit_fase2.repository.postagem.PostagemRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import com.trendsit.trendsit_fase2.service.relationship.FriendNumberService;
@@ -17,10 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,17 +28,19 @@ public class ProfileServiceImpl implements ProfileService {
     private final PostagemRepository postagemRepository;
     private final ProfileRepository profileRepository;
     private final FriendNumberService friendNumberService;
+    private final ComentarioRepository comentarioRepository;
 
     // Injeção via construtor
     @Autowired
     public ProfileServiceImpl(
             PostagemRepository postagemRepository,
             ProfileRepository profileRepository,
-            FriendNumberService friendNumberService
+            FriendNumberService friendNumberService, ComentarioRepository comentarioRepository
     ) {
         this.postagemRepository = postagemRepository;
         this.profileRepository = profileRepository;
         this.friendNumberService = friendNumberService;
+        this.comentarioRepository = comentarioRepository;
     }
 
     @Transactional
@@ -48,6 +49,11 @@ public class ProfileServiceImpl implements ProfileService {
                 .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
         profile.setProfileImage(image);
         profileRepository.save(profile);
+    }
+
+    @Override
+    public Optional<Profile> findByUsername(String username) {
+        return profileRepository.findByUsername(username);
     }
 
     @Override
@@ -61,11 +67,17 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Transactional
     public void createDefaultProfile(UUID userId) {
         Profile profile = new Profile();
         profile.setId(userId);
         profile.setUsername("default_username");
         profile.setRole(ProfileRole.USER);
+
+        // atribui friendNumber e imagem padrão logo na criação
+        profile.setFriendNumber(friendNumberService.generateUniqueFriendNumber());
+        profile.setProfileImage("/default-avatar.png");
+
         profileRepository.save(profile);
     }
 
@@ -76,6 +88,7 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setUsername(username);
         profile.setFriendNumber(friendNumberService.generateUniqueFriendNumber());
         profile.setRole(ProfileRole.USER);
+        // atribui sempre a imagem padrão, mesmo que o front não envie nada
         profile.setProfileImage("/default-avatar.png");
         return profileRepository.save(profile);
     }
@@ -86,7 +99,9 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setUsername(request.getUsername());
         profile.setIdade(request.getIdade());
         profile.setCurso(request.getCurso());
+        profile.setFriendNumber(friendNumberService.generateUniqueFriendNumber());
         profile.setRole(ProfileRole.USER);
+        profile.setProfileImage("/default-avatar.png");
         return profileRepository.save(profile);
     }
 
@@ -96,6 +111,7 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Transactional
     public Profile updateProfile(UUID profileId, ProfileRequestDTO request) {
         Profile profile = profileRepository.findById(profileId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
@@ -103,6 +119,14 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setUsername(request.getUsername());
         profile.setIdade(request.getIdade());
         profile.setCurso(request.getCurso());
+
+        // se ainda não tiver sido gerado, popula defaults
+        if (profile.getFriendNumber() == null) {
+            profile.setFriendNumber(friendNumberService.generateUniqueFriendNumber());
+        }
+        if (profile.getProfileImage() == null) {
+            profile.setProfileImage("/default-avatar.png");
+        }
 
         return profileRepository.save(profile);
     }
@@ -174,20 +198,6 @@ public class ProfileServiceImpl implements ProfileService {
         return profileRepository.save(profile);
     }
 
-    @Transactional
-    @Override
-    public void updateLastActive(UUID userId) {
-        Profile profile = profileRepository.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("Profile not found"));
-        profile.setLastActive(LocalDateTime.now());
-        profileRepository.save(profile);
-    }
-
-    public boolean isUserOnline(UUID userId) {
-        Profile profile = profileRepository.findById(userId).orElseThrow();
-        return profile.getLastActive().isAfter(LocalDateTime.now().minusMinutes(5));
-    }
-
     public List<PostagemResponseDTO> findPostsForUser(UUID userId) {
         Profile user = profileRepository.findById(userId).orElseThrow();
         List<UUID> followingIds = user.getFollowing().stream()
@@ -199,4 +209,59 @@ public class ProfileServiceImpl implements ProfileService {
                 .map(PostagemResponseDTO::new)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public List<String> obterCaminhoMaisCurto(UUID deId, UUID paraId) {
+        // Carrega todos os perfis com suas relações 'following' para construir o grafo
+        List<Profile> todosPerfis = profileRepository.findAllWithFollowing();
+
+        // Constrói o grafo de adjacência
+        Map<UUID, Set<UUID>> grafo = new HashMap<>();
+        for (Profile p : todosPerfis) {
+            grafo.put(p.getId(), p.getFollowing().stream()
+                    .map(Profile::getId)
+                    .collect(Collectors.toSet()));
+        }
+
+        // Executa BFS para encontrar o caminho mais curto
+        List<UUID> caminhoIds = bfsShortestPath(grafo, deId, paraId);
+
+        // Converte UUIDs para usernames
+        return caminhoIds.stream()
+                .map(id -> profileRepository.findById(id)
+                        .map(Profile::getUsername)
+                        .orElse("[desconhecido]"))
+                .collect(Collectors.toList());
+    }
+
+    // Método BFS para encontrar o caminho mais curto
+    private List<UUID> bfsShortestPath(Map<UUID, Set<UUID>> grafo, UUID source, UUID target) {
+        Queue<UUID> fila = new LinkedList<>();
+        Map<UUID, UUID> veioDe = new HashMap<>();
+        fila.add(source);
+        veioDe.put(source, null);
+
+        while (!fila.isEmpty()) {
+            UUID atual = fila.poll();
+            if (atual.equals(target)) break;
+
+            for (UUID vizinho : grafo.getOrDefault(atual, Collections.emptySet())) {
+                if (!veioDe.containsKey(vizinho)) {
+                    veioDe.put(vizinho, atual);
+                    fila.add(vizinho);
+                }
+            }
+        }
+
+        if (!veioDe.containsKey(target)) return Collections.emptyList();
+
+        List<UUID> caminho = new ArrayList<>();
+        for (UUID at = target; at != null; at = veioDe.get(at)) {
+            caminho.add(at);
+        }
+        Collections.reverse(caminho);
+        return caminho;
+    }
+
+
 }

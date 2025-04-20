@@ -43,50 +43,101 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(AbstractHttpConfigurer::disable) //Desabilitado apenas para test, em produção habilitar!!
+                .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(request -> {
                     CorsConfiguration config = new CorsConfiguration();
-                    // Permite qualquer origem (wildcard)
                     config.setAllowedOriginPatterns(List.of("*"));
-                    // Permite todos os métodos (GET, POST, etc.)
                     config.setAllowedMethods(List.of("*"));
-                    // Permite todos os headers
                     config.setAllowedHeaders(List.of("*"));
-                    // Desabilita credenciais (necessário para wildcard *)
-                    config.setAllowCredentials(false);
+                    config.setAllowCredentials(true);
                     return config;
                 }))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Public endpoints
                         .requestMatchers(
                                 "/auth/login",
                                 "/auth/register",
                                 "/auth/check-auth"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.DELETE, "/api/post/**",
-                                "/api/post/*/comentario/**",
-                                "/api/friends/**",
-                                "/api/follow/**",
-                                "/profiles/{profileId}").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/**").hasRole("ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/events/**").authenticated()
+
+                        // GET public resources
                         .requestMatchers(HttpMethod.GET,
                                 "/api/post",
                                 "/api/post/**",
                                 "/profiles",
+                                "/profiles/meu-perfil",
                                 "/events",
-                                "/vagas"
+                                "/job"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/follow/**",
-                                "/vagas").hasAnyRole("USER", "ADMIN")
+
+                        // POST and PUT for creation/update, based on role
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/post",
+                                "/api/post/*/comentario",
+                                "/api/groups",
+                                "/api/groups/{groupId}/posts",
+                                "/api/groups/{groupId}/posts/{postId}/comments",
+                                "/api/follow/**",
+                                "/events",
+                                "/job/create-job-opportunity"
+                        ).hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/events/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/events/*/status").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/groups/**").hasAnyRole("ALUNO", "PROFESSOR", "ADMIN")
+
+                        // DELETE endpoints: owners or admin
+                        .requestMatchers(HttpMethod.DELETE,
+                                // post comments
+                                "/api/post/*/comentario/*",
+                                // posts
+                                "/api/post/**",
+                                // group delete (creator or admin)
+                                "/api/groups/**",
+                                // group post/comments deletion
+                                "/api/groups/*/posts/**",
+                                "/api/groups/*/posts/*/comentario/**",
+                                // relationship delete (friend, unfollow)
+                                "/api/friends/**",
+                                "/api/follow/**"
+                        ).authenticated()
+
+                        // DELETE directorate: only teacher or admin for removing aluno
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/diretorio/*/alunos/*"
+                        ).hasAnyRole("ADMIN", "TEACHER")
+                        // DELETE directorate itself: only admin
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/api/diretorio/**"
+                        ).hasRole("ADMIN")
+
+                        // DELETE events: only admin
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/events/**"
+                        ).hasRole("ADMIN")
+
+                        // DELETE job opportunities: only admin
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/job/**"
+                        ).hasRole("ADMIN")
+
+                        // DELETE profiles: only admin
+                        .requestMatchers(HttpMethod.DELETE,
+                                "/profiles/**"
+                        ).hasRole("ADMIN")
+
+                        // Fallback: any other DELETE requires admin
+                        .requestMatchers(HttpMethod.DELETE, "/**").hasRole("ADMIN")
+
+                        // Swagger and static
                         .requestMatchers(
                                 "/v3/api-docs/**",
                                 "/swagger-ui/**",
                                 "/swagger-resources/**"
                         ).permitAll()
+
+                        // Any other request: authenticated
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(

@@ -24,5 +24,8 @@ public interface ComentarioRepository extends JpaRepository<Comentario, Long> {
 
     @Query("SELECT c FROM Comentario c WHERE c.postagem.id = :postId")
     List<Comentario> findByPostagemId(@Param("postId") Long postId);
+
+    @Query("SELECT c FROM Comentario c JOIN FETCH c.autor WHERE c.autor.id IN :autorIds")
+    List<Comentario> findByAutorIdIn(@Param("autorIds") List<UUID> autorIds);
 }
 
