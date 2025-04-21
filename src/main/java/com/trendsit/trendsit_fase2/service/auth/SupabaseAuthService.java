@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.trendsit.trendsit_fase2.service.profile.ProfileService;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.server.ResponseStatusException;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -67,10 +67,17 @@ public class SupabaseAuthService {
 
             return response;
 
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode() == HttpStatus.UNPROCESSABLE_ENTITY &&
+                    e.getResponseBodyAsString().contains("user_already_exists")) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Usuário já registrado.");
+            }
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao registrar: " + e.getResponseBodyAsString());
         } catch (Exception e) {
-            throw new RuntimeException("Registration failed: " + e.getMessage(), e);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro inesperado no registro", e);
         }
     }
+
 
     public UUID extractUserIdFromResponse(String responseBody) {
         try {

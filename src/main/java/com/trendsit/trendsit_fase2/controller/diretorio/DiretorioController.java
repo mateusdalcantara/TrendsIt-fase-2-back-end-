@@ -52,7 +52,7 @@ public class DiretorioController {
     }
 
     @PostMapping("/{turmanome}/createDirectory")
-    @PreAuthorize("hasAnyRole('ADMIN', 'PROFESSOR')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public void createDirectory(@PathVariable String turmanome){
         diretorioService.CreateDirectory(turmanome);
     }
@@ -74,7 +74,7 @@ public class DiretorioController {
     }
 
     @PostMapping("/removeteacher/{diretorioid}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<?> removeProfessor(@PathVariable Long diretorioid) {
         try {
             Diretorio diretorio = diretorioService.removeProfessor(diretorioid);
@@ -87,7 +87,7 @@ public class DiretorioController {
 
 
     @PostMapping("/{turmaId}/alunos")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<Void> addAluno(
             @PathVariable Long turmaId,
             @RequestParam UUID alunoId) {
@@ -124,7 +124,7 @@ public class DiretorioController {
     }
 
     @DeleteMapping("/{diretorioId}/alunos/{alunoId}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<Void> removeAluno(
             @PathVariable Long diretorioId,
             @PathVariable UUID alunoId

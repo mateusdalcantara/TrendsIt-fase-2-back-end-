@@ -82,7 +82,7 @@ public class RelationshipController {
     }
 
     @PutMapping("/friends/accept/{friendshipId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<?> acceptFriendRequest(
             @PathVariable Long friendshipId,
             @AuthenticationPrincipal Profile currentUser
@@ -97,7 +97,7 @@ public class RelationshipController {
     }
 
     @PutMapping("/friend-number")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<?> updateFriendNumber(
             @RequestBody @Valid UpdateFriendNumberRequest request,
             @AuthenticationPrincipal Profile currentUser
@@ -115,7 +115,7 @@ public class RelationshipController {
 
     // Follow Endpoints
     @PostMapping("/follow/{targetFriendNumber}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<Void> followUser(
             @PathVariable Long targetFriendNumber,
             @AuthenticationPrincipal Profile currentUser
@@ -125,7 +125,7 @@ public class RelationshipController {
     }
 
     @DeleteMapping("/follow/{targetFriendNumber}") // Changed from {targetUserId} to {targetFriendNumber}
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<Void> unfollowUser(
             @PathVariable Long targetFriendNumber, // Changed from UUID to Long
             @AuthenticationPrincipal Profile currentUser
@@ -135,7 +135,7 @@ public class RelationshipController {
     }
 
     @GetMapping("/notifications")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<RelationshipNotificationsDTO> getRelationshipNotifications(
             @AuthenticationPrincipal Profile currentUser
     ) {
@@ -166,7 +166,7 @@ public class RelationshipController {
     }
 
     @DeleteMapping("/friends/{friendNumber}")  // Changed from {friendId} to {friendNumber}
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<Void> removeFriend(
             @PathVariable Long friendNumber,  // Changed from UUID to Long
             @AuthenticationPrincipal Profile currentUser
@@ -176,7 +176,7 @@ public class RelationshipController {
     }
 
     @GetMapping("/friends")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<?> getFriends(@AuthenticationPrincipal Profile currentUser) {
         List<Profile> friends = friendshipService.getFriends(currentUser.getId());
 
@@ -197,7 +197,7 @@ public class RelationshipController {
 
     //O PATCH altera campo especifico.
     @PatchMapping("/friends/decline/{friendshipId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<Void> declineFriendRequest(
             @PathVariable Long friendshipId,
             @AuthenticationPrincipal Profile currentUser
@@ -207,7 +207,7 @@ public class RelationshipController {
     }
 
     @DeleteMapping("/friends/cancel_friend_request/{friendshipId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<Void> cancelFriendRequest(
             @PathVariable Long friendshipId,
             @AuthenticationPrincipal Profile currentUser

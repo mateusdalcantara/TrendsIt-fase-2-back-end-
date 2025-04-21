@@ -57,7 +57,7 @@ public class EventoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<EventoResponseDTO> criarEvento(
             @Valid @RequestBody EventoDTO eventoDto,
             @AuthenticationPrincipal Profile profile) {
@@ -79,7 +79,7 @@ public class EventoController {
 
 
     @PutMapping("/{codigoEvento}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<EventoResponseDTO> atualizarEvento(
             @PathVariable Long codigoEvento,
             @Valid @RequestBody EventoDTO eventoDTO,

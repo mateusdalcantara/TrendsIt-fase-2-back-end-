@@ -33,7 +33,7 @@ public class ComentarioController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<ComentarioResponseDTO> adicionarComentario(
             @PathVariable Long postId,
             @Valid @RequestBody ComentarioDTO comentarioDto,
@@ -48,7 +48,7 @@ public class ComentarioController {
     }
 
     @PutMapping("/{commentId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<Comentario> atualizarComentario(
             @PathVariable Long postId,
             @PathVariable Long commentId,
@@ -65,7 +65,7 @@ public class ComentarioController {
     }
 
     @DeleteMapping("/{commentId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<Void> deletarComentario(
             @PathVariable Long postId,
             @PathVariable Long commentId,

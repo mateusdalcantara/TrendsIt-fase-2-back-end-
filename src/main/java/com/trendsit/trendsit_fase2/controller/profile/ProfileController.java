@@ -71,7 +71,7 @@ public class ProfileController {
     }
 
     @PutMapping("/atualizar-meu-perfil")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<ProfileRequestDTO> atualizarMeuPerfil(
             @Valid @RequestBody ProfileUpdateDTO dto, // Changed DTO type
             @AuthenticationPrincipal Profile usuarioLogado
@@ -87,8 +87,7 @@ public class ProfileController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ProfileAdminDTO> atualizarPerfilAdmin(
             @PathVariable UUID userId,
-            @Valid @RequestBody ProfileAdminUpdateDTO request
-    ) {
+            @Valid @RequestBody ProfileAdminUpdateDTO request) {
         Profile updatedProfile = profileService.atualizarPerfilAdmin(userId, request);
         return ResponseEntity.ok(new ProfileAdminDTO(updatedProfile));
     }

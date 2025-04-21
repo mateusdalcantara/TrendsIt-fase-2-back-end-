@@ -1,13 +1,10 @@
 package com.trendsit.trendsit_fase2.service.profile;
 
 
-import com.trendsit.trendsit_fase2.dto.comentario.ComentarioDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemDTO;
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.dto.profile.*;
 import com.trendsit.trendsit_fase2.dto.auth.AuthProfileDTO;
-import com.trendsit.trendsit_fase2.model.comentario.Comentario;
-import com.trendsit.trendsit_fase2.model.postagem.Postagem;
+import com.trendsit.trendsit_fase2.model.diretorio.Diretorio;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.comentario.ComentarioRepository;
@@ -19,12 +16,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.trendsit.trendsit_fase2.repository.diretorio.DiretorioRepository;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
 public class ProfileServiceImpl implements ProfileService {
 
+    private final DiretorioRepository diretorioRepository;
     private final PostagemRepository postagemRepository;
     private final ProfileRepository profileRepository;
     private final FriendNumberService friendNumberService;
@@ -33,10 +32,11 @@ public class ProfileServiceImpl implements ProfileService {
     // Injeção via construtor
     @Autowired
     public ProfileServiceImpl(
-            PostagemRepository postagemRepository,
+            DiretorioRepository diretorioRepository, PostagemRepository postagemRepository,
             ProfileRepository profileRepository,
             FriendNumberService friendNumberService, ComentarioRepository comentarioRepository
     ) {
+        this.diretorioRepository = diretorioRepository;
         this.postagemRepository = postagemRepository;
         this.profileRepository = profileRepository;
         this.friendNumberService = friendNumberService;
@@ -72,7 +72,7 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = new Profile();
         profile.setId(userId);
         profile.setUsername("default_username");
-        profile.setRole(ProfileRole.USER);
+        profile.setRole(ProfileRole.ALUNO);
 
         // atribui friendNumber e imagem padrão logo na criação
         profile.setFriendNumber(friendNumberService.generateUniqueFriendNumber());
@@ -87,7 +87,7 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setId(userId);
         profile.setUsername(username);
         profile.setFriendNumber(friendNumberService.generateUniqueFriendNumber());
-        profile.setRole(ProfileRole.USER);
+        profile.setRole(ProfileRole.ALUNO);
         // atribui sempre a imagem padrão, mesmo que o front não envie nada
         profile.setProfileImage("/default-avatar.png");
         return profileRepository.save(profile);
@@ -100,7 +100,7 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setIdade(request.getIdade());
         profile.setCurso(request.getCurso());
         profile.setFriendNumber(friendNumberService.generateUniqueFriendNumber());
-        profile.setRole(ProfileRole.USER);
+        profile.setRole(ProfileRole.ALUNO);
         profile.setProfileImage("/default-avatar.png");
         return profileRepository.save(profile);
     }
@@ -178,10 +178,22 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = profileRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
+        // Atualiza campos existentes
         profile.setUsername(dto.getUsername());
         profile.setIdade(dto.getIdade());
         profile.setCurso(dto.getCurso());
         profile.setRole(dto.getRole());
+
+        // Atualiza o diretório (se fornecido)
+        if (dto.getDiretorioId() != null) {
+            Diretorio diretorio = diretorioRepository.findById(dto.getDiretorioId())
+                    .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
+            profile.setDiretorio(diretorio);
+            profile.setDiretorioNome(diretorio.getNome()); // Define o nome do diretório
+        } else {
+            profile.setDiretorio(null);
+            profile.setDiretorioNome(null);
+        }
 
         return profileRepository.save(profile);
     }

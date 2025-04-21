@@ -15,6 +15,8 @@ import java.util.UUID;
 @Service
 public interface ProfileService {
 
+
+
     public List<String> obterCaminhoMaisCurto(UUID deId, UUID paraId);
 
     Optional<Profile> findById(UUID id);

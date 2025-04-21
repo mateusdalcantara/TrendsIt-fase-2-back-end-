@@ -38,7 +38,7 @@ public class VagaController {
     // Criar vaga
     @SecurityRequirement(name = "Bearer Authentication")
     @PostMapping("/create-job-opportunity")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<VagaResponseDTO> criarVaga(
             @Valid @RequestBody VagaDTO dto,
             @AuthenticationPrincipal Profile profile
@@ -61,7 +61,7 @@ public class VagaController {
 
     // Atualizar vaga
     @PutMapping("/change-description-job-opportunity/{codigoVaga}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<VagaResponseDTO> atualizarVaga(
             @PathVariable Long codigoVaga,
             @Valid @RequestBody VagaDTO dto,

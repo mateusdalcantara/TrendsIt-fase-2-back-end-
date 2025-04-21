@@ -28,6 +28,9 @@ public class Diretorio {
     @OneToMany(mappedBy = "diretorio")
     private List<Profile> alunos = new ArrayList<>();
 
+    @Column(nullable = false, unique = true)
+    private String nome;
+
     public void addAluno(Profile aluno) {
         if (!this.alunos.contains(aluno)) {
             this.alunos.add(aluno);
@@ -43,8 +46,5 @@ public class Diretorio {
             aluno.setDiretorio(null);
         }
 
-
-
-
-
-    }}
+    }
+}

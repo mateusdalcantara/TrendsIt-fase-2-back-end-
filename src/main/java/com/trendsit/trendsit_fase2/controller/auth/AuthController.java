@@ -67,9 +67,12 @@ public class AuthController {
                     logger.info("Criando novo Profile para ID {}", sub);
                     Profile novo = new Profile();
                     novo.setId(userId);
-                    Object um = jwt.getClaim("user_metadata").asMap().get("username");
-                    novo.setUsername(um != null ? um.toString() : "user_" + sub.substring(0, 8));
-                    novo.setRole(ProfileRole.USER);
+                    Object usernameFromMetadata = jwt.getClaim("user_metadata").asMap().get("username");
+
+                    // Define o username (usa o valor do metadata se existir, ou só "usuario_" + 4 chars, ou "" se preferir forçar login via front)
+                    novo.setUsername(usernameFromMetadata != null ? usernameFromMetadata.toString() : "");
+
+                    novo.setRole(ProfileRole.ALUNO);
                     novo.setFriendNumber(System.currentTimeMillis());
                     return profileRepository.save(novo);
                 });
@@ -83,4 +86,5 @@ public class AuthController {
         );
         return ResponseEntity.ok(response);
     }
+
 }

@@ -25,7 +25,7 @@ public class ProtectedController {
     }
 
     @GetMapping("/common-area")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public String commonArea() {
         return "Área comum";
     }

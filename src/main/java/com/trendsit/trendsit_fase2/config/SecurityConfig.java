@@ -67,10 +67,11 @@ public class SecurityConfig {
                                 "/api/post",
                                 "/api/post/**",
                                 "/profiles",
-                                "/profiles/meu-perfil",
                                 "/events",
                                 "/job"
                         ).permitAll()
+                        // Endpoint específico do perfil do usuário autenticado
+                        .requestMatchers(HttpMethod.GET, "/profiles/meu-perfil").authenticated()
 
                         // POST and PUT for creation/update, based on role
                         .requestMatchers(HttpMethod.POST,

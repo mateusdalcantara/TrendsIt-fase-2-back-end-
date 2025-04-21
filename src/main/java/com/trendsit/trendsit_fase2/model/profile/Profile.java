@@ -17,7 +17,6 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -50,7 +49,10 @@ public class Profile implements UserDetails {
     private Long friendNumber;
 
     @Enumerated(EnumType.STRING)
-    private ProfileRole role = ProfileRole.USER;
+    private ProfileRole role = ProfileRole.ALUNO;
+
+    @Column(name = "diretorio_nome")
+    private String diretorioNome; //
 
     private Integer idade;
 

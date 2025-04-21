@@ -41,7 +41,7 @@ public class PostagemController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<PostagemResponseDTO> createPost(
             @Valid @RequestBody PostagemRequestDTO postagemRequest,
             @AuthenticationPrincipal Profile profile
@@ -78,7 +78,7 @@ public class PostagemController {
     }
 
     @PutMapping("/{postId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<PostagemResponseDTO> updatePost(
             @PathVariable Long postId,
             @Valid @RequestBody PostagemDTO postagemDto,
@@ -96,7 +96,7 @@ public class PostagemController {
     }
 
     @DeleteMapping("/api/post/{postId}")
-    @PreAuthorize("hasAnyRole('USER', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<Void> deletePost(
             @PathVariable Long postId,
             @AuthenticationPrincipal Profile currentUser
