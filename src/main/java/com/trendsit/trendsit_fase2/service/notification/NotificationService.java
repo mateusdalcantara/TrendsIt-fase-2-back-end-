@@ -1,16 +1,13 @@
 package com.trendsit.trendsit_fase2.service.notification;
 
-import com.trendsit.trendsit_fase2.exception.EntityNotFoundException;
 import com.trendsit.trendsit_fase2.model.evento.Evento;
 import com.trendsit.trendsit_fase2.model.notification.Notification;
 import com.trendsit.trendsit_fase2.model.vaga.Vaga;
 import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
 import com.trendsit.trendsit_fase2.repository.notification.NotificationRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Service
 public class NotificationService {
@@ -21,6 +18,10 @@ public class NotificationService {
     public NotificationService(NotificationRepository notificationRepository, EventoRepository eventoRepository) {
         this.notificationRepository = notificationRepository;
         this.eventoRepository = eventoRepository;
+    }
+
+    public void deleteNotificationsByEvento(Evento evento) {
+        notificationRepository.deleteByEvento(evento);
     }
 
     // Método específico para criar notificações de vaga

@@ -131,6 +131,7 @@ public class EventoService {
         Evento evento = eventoRepository.findByCodigoEvento(codigoEvento)
                 .orElseThrow(() -> new EntityNotFoundException("Evento não encontrado"));
 
+        notificationService.deleteNotificationsByEvento(evento);
         eventoRepository.delete(evento);
     }
 
