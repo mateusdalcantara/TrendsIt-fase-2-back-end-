@@ -23,6 +23,9 @@ public class Evento implements OwnableEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "rejection_reason")
+    private String rejectionReason;
+
     @Column(name = "codigo_evento", unique = true, nullable = false)
     private Long codigoEvento;
 

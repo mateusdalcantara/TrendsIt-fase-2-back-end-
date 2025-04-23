@@ -49,16 +49,9 @@ public class DiretorioServiceImpl implements DiretorioService {
 
     // Cria o diretório
     public Diretorio criarDiretorio(DiretorioRequestDTO request) {
-        // Busca o professor pelo ID
-        Profile professor = profileRepository.findById(request.getProfessorId())
-                .orElseThrow(() -> new EntityNotFoundException("Professor não encontrado"));
-
-        // Cria o diretório
         Diretorio diretorio = new Diretorio();
         diretorio.setTurma(request.getTurma());
         diretorio.setTituloDoCurso(request.getTituloDoCurso());
-        diretorio.setPrimaryProfessor(professor); // Associa o professor
-
         return diretorioRepository.save(diretorio);
     }
 

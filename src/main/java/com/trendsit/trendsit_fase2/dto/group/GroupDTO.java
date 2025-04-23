@@ -2,52 +2,28 @@ package com.trendsit.trendsit_fase2.dto.group;
 
 import com.trendsit.trendsit_fase2.dto.profile.SimpleProfileDTO;
 import com.trendsit.trendsit_fase2.model.group.Group;
+import lombok.Getter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+@Getter
 public class GroupDTO {
-    private UUID id;
-    private String nome;
-    private LocalDateTime createdAt;
-    private SimpleProfileDTO criador;
+    private final java.util.UUID id;
+    private final String nome;
+    private final LocalDateTime createdAt;
+    private final SimpleProfileDTO criador;
+    private final List<SimpleProfileDTO> membros;
 
     public GroupDTO(Group group) {
         this.id = group.getId();
         this.nome = group.getNome();
         this.createdAt = group.getCreatedAt();
         this.criador = new SimpleProfileDTO(group.getCriador());
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public SimpleProfileDTO getCriador() {
-        return criador;
-    }
-
-    public void setCriador(SimpleProfileDTO criador) {
-        this.criador = criador;
+        this.membros = group.getMembros().stream()
+                .map(SimpleProfileDTO::new)
+                .collect(Collectors.toList());
     }
 }

@@ -38,6 +38,11 @@ public class PostagemServiceImpl implements PostagemService {
         this.profileService = profileService;
     }
 
+    @Override
+    public List<PostagemResponseDTO> findAllPostsProjection() {
+        return postagemRepository.findAllPostsProjection();
+    }
+
 
     @Transactional
     @Override
@@ -54,17 +59,15 @@ public class PostagemServiceImpl implements PostagemService {
 
     @Override
     public List<PostagemWithCommentsDTO> findAllPostsWithComments() {
-        return postagemRepository.findAllWithComments().stream()
-                .map(post -> {
-                    // monta o DTO base
-                    PostagemResponseDTO base = new PostagemResponseDTO(post);
-                    // lista de comentários
-                    List<ComentarioResponseDTO> comms = post.getComentarios().stream()
-                            .map(ComentarioResponseDTO::new)
-                            .toList();
-                    // encapsula tudo
-                    return new PostagemWithCommentsDTO(base, comms);
-                })
+        return postagemRepository
+                .findAllWithAuthorAndComments()
+                .stream()
+                .map(p -> new PostagemWithCommentsDTO(
+                        new PostagemResponseDTO(p),
+                        p.getComentarios().stream()
+                                .map(ComentarioResponseDTO::new)
+                                .toList()
+                ))
                 .toList();
     }
 
@@ -87,6 +90,15 @@ public class PostagemServiceImpl implements PostagemService {
         Postagem postagem = postagemRepository.findByIdWithAutor(id) // Usa a consulta com JOIN FETCH
                 .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
         return new PostagemResponseDTO(postagem);
+    }
+
+    @Override
+    public Postagem updatePostContent(Long postId, PostagemUpdateDTO postagemUpdateDTO) {
+        Postagem existingPost = postagemRepository.findById(postId)
+                .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
+
+        existingPost.setConteudo(postagemUpdateDTO.getConteudo());
+        return postagemRepository.save(existingPost);
     }
 
     @Override
@@ -136,7 +148,7 @@ public class PostagemServiceImpl implements PostagemService {
 
         profile.setUsername(dto.getUsername());
         profile.setIdade(dto.getIdade());
-        profile.setCurso(dto.getCurso());
+
 
         return profileRepository.save(profile);
     }

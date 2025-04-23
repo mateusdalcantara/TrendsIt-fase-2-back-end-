@@ -17,7 +17,6 @@ public class ProfileResponseDTO {
     private String username;
     private Integer idade;
     private String curso;
-    private String diretorioNome;
     private ProfileRole role;
     private Long friendNumber;
     private String profileImage;
@@ -28,7 +27,6 @@ public class ProfileResponseDTO {
         this.username = profile.getUsername();
         this.idade = profile.getIdade();
         this.curso = profile.getCurso();
-        this.diretorioNome = profile.getDiretorioNome();
         this.role = profile.getRole();
         this.friendNumber = profile.getFriendNumber();
         this.profileImage = profile.getProfileImage();

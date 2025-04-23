@@ -10,11 +10,11 @@ import java.util.UUID;
 @Getter
 @Setter
 public class GroupPostCommentDTO {
-    private UUID id;
-    private String content;
-    private UUID authorId;
-    private String authorUsername;
-    private LocalDateTime createdAt;
+    private final UUID id;
+    private final String content;
+    private final UUID authorId;
+    private final String authorUsername;
+    private final LocalDateTime createdAt;
 
     public GroupPostCommentDTO(GroupPostComment comment) {
         this.id = comment.getId();

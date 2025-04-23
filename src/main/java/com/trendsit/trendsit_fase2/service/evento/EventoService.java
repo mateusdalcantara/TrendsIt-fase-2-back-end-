@@ -29,13 +29,18 @@ public class EventoService {
     EventoRepository eventoRepository;
     ProfileRepository profileRepository;
     NotificationService notificationService;
-    public EventoService(EventoRepository eventoRepository, ProfileRepository profileRepository, AuthorizationService authorizationService){
+    public EventoService(
+            EventoRepository eventoRepository,
+            ProfileRepository profileRepository,
+            AuthorizationService authorizationService,
+            NotificationService notificationService
+    ) {
         this.eventoRepository = eventoRepository;
         this.profileRepository = profileRepository;
         this.authorizationService = authorizationService;
-        NotificationService notificationService;
-
+        this.notificationService = notificationService;
     }
+
 
     public List<EventoResponseDTO> findAllEvents() {
         return eventoRepository.findAllApprovedEvents().stream()
@@ -113,32 +118,6 @@ public class EventoService {
         return codigo;
     }
 
-    public Evento updateEventStatus(Long codigoEvento, Evento.Status status, UUID adminId, String rejectionReason)
-            throws AccessDeniedException {
-
-        Evento evento = eventoRepository.findByCodigoEvento(codigoEvento)
-                .orElseThrow(() -> new EntityNotFoundException("Evento não encontrado"));
-
-        // 2. Verify admin privileges
-        Profile admin = profileRepository.findById(adminId)
-                .orElseThrow(() -> new EntityNotFoundException("Admin não encontrado"));
-
-        if (!admin.getRole().equals(ProfileRole.ADMIN)) {
-            throw new AccessDeniedException("Apenas administradores podem modificar status");
-        }
-
-        // 3. Update status
-        evento.setStatus(status);
-        Evento updatedEvento = eventoRepository.save(evento);
-
-        // Cria notificação se aprovado/rejeitado
-        if (status == Evento.Status.APROVADO || status == Evento.Status.REJEITADO) {
-            notificationService.createEventNotification(updatedEvento, status, rejectionReason);
-        }
-
-        return updatedEvento;
-    }
-
 
     @Transactional
     public void deleteEvento(Long codigoEvento, UUID adminId) throws AccessDeniedException {
@@ -153,5 +132,38 @@ public class EventoService {
                 .orElseThrow(() -> new EntityNotFoundException("Evento não encontrado"));
 
         eventoRepository.delete(evento);
+    }
+
+
+    @Transactional
+    public Evento updateEventStatus(
+            Long codigoEvento,
+            Evento.Status status,
+            UUID adminId,
+            String rejectionReason
+    ) throws AccessDeniedException {
+
+        Evento evento = eventoRepository.findByCodigoEvento(codigoEvento)
+                .orElseThrow(() -> new EntityNotFoundException("Evento não encontrado"));
+
+        // Verifica se o usuário é ADMIN
+        Profile admin = profileRepository.findById(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("Admin não encontrado"));
+
+        if (!admin.getRole().equals(ProfileRole.ADMIN)) {
+            throw new AccessDeniedException("Apenas administradores podem modificar status");
+        }
+
+        // Atualiza o status
+        evento.setStatus(status);
+        evento.setRejectionReason(rejectionReason);
+        Evento updatedEvento = eventoRepository.save(evento);
+
+        // Cria a notificação
+        if (status == Evento.Status.APROVADO || status == Evento.Status.REJEITADO) {
+            notificationService.createEventNotification(updatedEvento, status, rejectionReason);
+        }
+
+        return updatedEvento;
     }
 }

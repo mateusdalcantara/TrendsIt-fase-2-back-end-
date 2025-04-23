@@ -23,13 +23,11 @@ public class GroupPostService {
     private final GroupPostRepository postRepository;
     private final GroupPostCommentRepository commentRepository;
     private final GroupService groupService;
-    private final ProfileRepository profileRepository;
-    private final GroupRepository groupRepository;
 
     // Criar postagem (somente membros)
     public GroupPost createPost(UUID groupId, GroupPostRequestDTO request, Profile author) {
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Grupo não encontrado"));
+        // Carrega o grupo já com membros
+        Group group = groupService.getGroupWithMembers(groupId);
 
         // Verificar se o autor é membro do grupo
         if (!group.getMembros().contains(author)) {
@@ -48,7 +46,7 @@ public class GroupPostService {
         GroupPost post = postRepository.findByIdWithGroupAndMembers(postId)
                 .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
 
-        // Verificação corrigida
+        // Verificação de membro no grupo da postagem
         if (post.getGroup().getMembros().stream()
                 .noneMatch(member -> member.getId().equals(author.getId()))) {
             throw new AccessDeniedException("Apenas membros do grupo podem comentar");
@@ -64,12 +62,13 @@ public class GroupPostService {
 
     // Listar postagens do grupo (somente membros)
     public List<GroupPost> getPostsByGroup(UUID groupId, Profile user) {
-        Group group = groupService.getGroupById(groupId);
+        // Carrega o grupo com membros
+        Group group = groupService.getGroupWithMembers(groupId);
 
         if (!group.getMembros().contains(user)) {
             throw new AccessDeniedException("Apenas membros podem visualizar as postagens");
         }
 
-        return postRepository.findByGroupIdWithComments(groupId); // Usando a nova consulta
+        return postRepository.findByGroupIdWithComments(groupId);
     }
 }

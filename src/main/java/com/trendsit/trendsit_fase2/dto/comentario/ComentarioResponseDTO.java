@@ -1,24 +1,25 @@
 package com.trendsit.trendsit_fase2.dto.comentario;
 
-import com.trendsit.trendsit_fase2.dto.autor.AutorDTO;
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.time.LocalDateTime;
 
 @Getter
-@Setter
 public class ComentarioResponseDTO {
-    private Long id;
-    private String conteudo;
-    private LocalDateTime createdAt;
-    private AutorDTO autor;
+    private final Long id;
+    private final String conteudo;
 
-    public ComentarioResponseDTO(Comentario comentario) {
-        this.id = comentario.getId();
-        this.conteudo = comentario.getConteudo();
-        this.createdAt = comentario.getCreatedAt();
-        this.autor = new AutorDTO(comentario.getAutor());
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    private final LocalDateTime createdAt;
+
+    private final String autorUsername;
+
+    public ComentarioResponseDTO(Comentario c) {
+        this.id = c.getId();
+        this.conteudo = c.getConteudo();
+        this.createdAt = c.getCreatedAt();
+        this.autorUsername = c.getAutor().getUsername();
     }
 }

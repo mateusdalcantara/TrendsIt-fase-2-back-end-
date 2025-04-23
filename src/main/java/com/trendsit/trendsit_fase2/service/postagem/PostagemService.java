@@ -7,6 +7,7 @@ import com.trendsit.trendsit_fase2.dto.profile.ProfileUpdateDTO;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +18,8 @@ import java.util.UUID;
 @Service
 public interface PostagemService {
 
+    List<PostagemResponseDTO> findAllPostsProjection();
+
     @Transactional
     Postagem createPost(PostagemRequestDTO postagemRequest, UUID autorId);
 
@@ -26,6 +29,8 @@ public interface PostagemService {
     List<PostagemResponseDTO> findAllPosts();
 
     List<PostagemResponseAdminDTO> findAllPostsAdmin();
+
+    Postagem updatePostContent(Long postId, PostagemUpdateDTO postagemUpdateDTO);
 
     boolean isOwnerOrAdmin(Postagem postagem, UUID currentUserId);
 
@@ -39,6 +44,8 @@ public interface PostagemService {
 
     Profile atualizarPerfilUsuario(UUID userId, ProfileUpdateDTO dto);
 
+
+
     List<ProfileAdminDTO> findAllForAdmin();
 
     List<ProfilePublicoDTO> findAllPublicProfiles();
@@ -48,4 +55,5 @@ public interface PostagemService {
     List<PostagemResponseDTO> findPostsForUser(UUID userId);
 
     PostagemResponseDTO findPostById(Long id);
+
 }

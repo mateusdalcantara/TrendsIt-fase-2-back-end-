@@ -15,6 +15,7 @@ import com.trendsit.trendsit_fase2.model.friendship.Friendship;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
+import com.trendsit.trendsit_fase2.service.profile.ProfileService;
 import com.trendsit.trendsit_fase2.service.relationship.FollowService;
 import com.trendsit.trendsit_fase2.service.relationship.FriendshipService;
 import jakarta.validation.Valid;
@@ -42,16 +43,18 @@ public class RelationshipController {
     private final FriendshipService friendshipService;
     private final FollowService followService;
     private final ProfileRepository profileRepository;
+    private final ProfileService profileService;
 
 
     public RelationshipController(
             FriendshipService friendshipService,
             FollowService followService,
-            ProfileRepository profileRepository
+            ProfileRepository profileRepository, ProfileService profileService
     ) {
         this.friendshipService = friendshipService;
         this.followService = followService;
         this.profileRepository = profileRepository;
+        this.profileService = profileService;
     }
 
     @PostMapping("/friends/request/{friendNumber}")
@@ -185,4 +188,18 @@ public class RelationshipController {
         friendshipService.cancelFriendRequest(friendshipId, currentUser.getId());
         return ResponseEntity.noContent().build();
     }
+
+    //BFS para garantir o caminho mais curto
+    @GetMapping("/{alvoId}/caminho-mais-curto")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> getCaminho(
+            @PathVariable UUID alvoId,
+            @AuthenticationPrincipal Profile usuarioAtual) {
+        List<String> caminho = profileService.obterCaminhoMaisCurto(usuarioAtual.getId(), alvoId);
+        if (caminho.isEmpty()) {
+            return ResponseEntity.ok("Nenhum caminho encontrado.");
+        }
+        return ResponseEntity.ok(String.join(" → ", caminho));
+    }
+
 }

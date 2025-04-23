@@ -10,6 +10,7 @@ import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import com.trendsit.trendsit_fase2.service.evento.EventoService;
+import com.trendsit.trendsit_fase2.service.notification.NotificationService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
@@ -29,14 +30,16 @@ public class EventoController {
     private final EventoService eventoService;
     private final EventoRepository eventoRepository;
     private final ProfileRepository profileRepository;
+    private final NotificationService notificationService;
 
     public EventoController(EventoService eventoService,
                             EventoRepository eventoRepository,
-                            ProfileRepository profileRepository) {
+                            ProfileRepository profileRepository, NotificationService notificationService) {
 
         this.eventoService = eventoService;
         this.eventoRepository = eventoRepository;
         this.profileRepository = profileRepository;
+        this.notificationService = notificationService;
     }
 
     @GetMapping

@@ -50,9 +50,8 @@ public class PostagemController {
 
     @GetMapping
     public ResponseEntity<List<PostagemWithCommentsDTO>> getAllPosts() {
-        return ResponseEntity.ok(
-                postagemService.findAllPostsWithComments()
-        );
+        List<PostagemWithCommentsDTO> dtos = postagemService.findAllPostsWithComments();
+        return ResponseEntity.ok(dtos);
     }
 
     @GetMapping("/admin/Posts")
@@ -75,11 +74,12 @@ public class PostagemController {
         return ResponseEntity.ok(new PostagemResponseDTO(postagem));
     }
 
+    // PostagemController.java
     @PutMapping("/{postId}")
     @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<PostagemResponseDTO> updatePost(
             @PathVariable Long postId,
-            @Valid @RequestBody PostagemDTO postagemDto,
+            @Valid @RequestBody PostagemUpdateDTO postagemUpdateDTO, // Use PostagemUpdateDTO
             @AuthenticationPrincipal Profile currentUser
     ) {
         Postagem postagem = postagemService.findById(postId)
@@ -89,7 +89,7 @@ public class PostagemController {
             throw new AccessDeniedException("Acesso negado");
         }
 
-        Postagem updatedPost = postagemService.updatePost(postId, postagemDto);
+        Postagem updatedPost = postagemService.updatePostContent(postId, postagemUpdateDTO);
         return ResponseEntity.ok(new PostagemResponseDTO(updatedPost));
     }
 

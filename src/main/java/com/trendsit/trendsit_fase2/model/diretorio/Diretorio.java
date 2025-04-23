@@ -20,13 +20,13 @@ public class Diretorio {
     private String turma;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professor_id")
+    @JoinColumn(name = "professor_id", nullable = true)
     private Profile primaryProfessor;
 
     @OneToMany(mappedBy = "diretorio", fetch = FetchType.LAZY)
     private List<Profile> alunos;
 
-    @Column(name = "titulo_do_curso")
+    @Column(name = "titulo_do_curso", nullable = false)
     private String tituloDoCurso;
 
 

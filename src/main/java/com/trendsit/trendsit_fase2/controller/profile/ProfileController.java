@@ -98,18 +98,4 @@ public class ProfileController {
         profileService.deleteProfile(profileId);
         return ResponseEntity.noContent().build();
     }
-
-    //BFS para garantir o caminho mais curto
-    @GetMapping("/{alvoId}/caminho-mais-curto")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> getCaminho(
-            @PathVariable UUID alvoId,
-            @AuthenticationPrincipal Profile usuarioAtual) {
-        List<String> caminho = profileService.obterCaminhoMaisCurto(usuarioAtual.getId(), alvoId);
-        if (caminho.isEmpty()) {
-            return ResponseEntity.ok("Nenhum caminho encontrado.");
-        }
-        return ResponseEntity.ok(String.join(" → ", caminho));
-    }
-
 }

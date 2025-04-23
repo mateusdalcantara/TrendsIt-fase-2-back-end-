@@ -10,5 +10,4 @@ import java.util.UUID;
 public class DiretorioRequestDTO {
     private String turma;
     private String tituloDoCurso;
-    private UUID professorId;
 }

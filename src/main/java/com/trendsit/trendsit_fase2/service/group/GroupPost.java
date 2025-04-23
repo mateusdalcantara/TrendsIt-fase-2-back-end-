@@ -1,12 +1,10 @@
 package com.trendsit.trendsit_fase2.service.group;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.trendsit.trendsit_fase2.model.group.Group;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.GenericGenerator;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 

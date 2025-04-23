@@ -79,7 +79,7 @@ public class NotificationController {
                         n.getType().replace("VACANCY_", ""), // Converte para "APPROVED" ou "REJECTED"
                         n.getMessage(),
                         n.getCreatedAt(),
-                        n.getVacancy() != null ? n.getVacancy().getId() : null
+                        n.getVaga() != null ? n.getVaga().getId() : null
                 ))
                 .toList();
 

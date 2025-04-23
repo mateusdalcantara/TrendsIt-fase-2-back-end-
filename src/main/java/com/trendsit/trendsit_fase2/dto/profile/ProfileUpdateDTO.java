@@ -13,5 +13,5 @@ public class ProfileUpdateDTO {
     private String username;
 
     private Integer idade;
-    private String curso;
+    //private String curso;
 }
