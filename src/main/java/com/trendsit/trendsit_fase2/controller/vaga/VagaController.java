@@ -19,7 +19,7 @@ import java.util.List;
 
 @SecurityRequirement(name = "Bearer Authentication")
 @RestController
-@RequestMapping("/job")
+@RequestMapping("/api/vagas")
 public class VagaController {
     private final VagaService vagaService;
     private final VagaRepository vagaRepository;
@@ -80,10 +80,11 @@ public class VagaController {
     public ResponseEntity<VagaResponseAdminDTO> moderarVaga(
             @PathVariable Long id,
             @RequestParam Vaga.Status status,
+            @RequestParam(required = false) String rejectionReason,
             @AuthenticationPrincipal Profile admin
     ) {
         return ResponseEntity.ok(
-                new VagaResponseAdminDTO(vagaService.moderateVaga(id, status, admin.getId()))
+                new VagaResponseAdminDTO(vagaService.moderateVaga(id, status, admin.getId(), rejectionReason))
         );
     }
 

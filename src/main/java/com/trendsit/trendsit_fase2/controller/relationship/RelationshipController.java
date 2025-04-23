@@ -134,36 +134,6 @@ public class RelationshipController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/notifications")
-    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
-    public ResponseEntity<RelationshipNotificationsDTO> getRelationshipNotifications(
-            @AuthenticationPrincipal Profile currentUser
-    ) {
-        // Fetch received pending requests (requests sent TO the current user)
-        List<Friendship> receivedPendingRequests =
-                friendshipService.getReceivedPendingRequests(currentUser.getId());
-
-        // Fetch sent pending requests (requests sent BY the current user)
-        List<Friendship> sentPendingRequests =
-                friendshipService.getSentPendingRequests(currentUser.getId());
-
-        // Fetch followers
-        List<FollowerDTO> followerDTOs = followService.getFollowers(currentUser.getId()).stream()
-                .map(FollowerDTO::new)
-                .toList();
-
-        List<FriendRequestDTO> receivedDTOs = receivedPendingRequests.stream()
-                .map(FriendRequestDTO::new)
-                .toList();
-
-        List<FriendRequestDTO> sentDTOs = sentPendingRequests.stream()
-                .map(FriendRequestDTO::new)
-                .toList();
-
-        return ResponseEntity.ok(
-                new RelationshipNotificationsDTO(receivedDTOs, sentDTOs, followerDTOs)
-        );
-    }
 
     @DeleteMapping("/friends/{friendNumber}")  // Changed from {friendId} to {friendNumber}
     @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")

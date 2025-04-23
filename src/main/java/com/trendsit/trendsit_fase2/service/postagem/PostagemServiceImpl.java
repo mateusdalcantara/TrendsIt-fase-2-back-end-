@@ -1,10 +1,8 @@
 package com.trendsit.trendsit_fase2.service.postagem;
 
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemRequestDTO;
+import com.trendsit.trendsit_fase2.dto.comentario.ComentarioResponseDTO;
+import com.trendsit.trendsit_fase2.dto.postagem.*;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseAdminDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfilePublicoDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileUpdateDTO;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
@@ -52,6 +50,22 @@ public class PostagemServiceImpl implements PostagemService {
         postagem.setAutor(autor);
 
         return postagemRepository.save(postagem);
+    }
+
+    @Override
+    public List<PostagemWithCommentsDTO> findAllPostsWithComments() {
+        return postagemRepository.findAllWithComments().stream()
+                .map(post -> {
+                    // monta o DTO base
+                    PostagemResponseDTO base = new PostagemResponseDTO(post);
+                    // lista de comentários
+                    List<ComentarioResponseDTO> comms = post.getComentarios().stream()
+                            .map(ComentarioResponseDTO::new)
+                            .toList();
+                    // encapsula tudo
+                    return new PostagemWithCommentsDTO(base, comms);
+                })
+                .toList();
     }
 
 

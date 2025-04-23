@@ -1,10 +1,7 @@
 package com.trendsit.trendsit_fase2.service.postagem;
 
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemRequestDTO;
+import com.trendsit.trendsit_fase2.dto.postagem.*;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileAdminDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseAdminDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfilePublicoDTO;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileUpdateDTO;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
@@ -22,6 +19,9 @@ public interface PostagemService {
 
     @Transactional
     Postagem createPost(PostagemRequestDTO postagemRequest, UUID autorId);
+
+
+    List<PostagemWithCommentsDTO> findAllPostsWithComments();
 
     List<PostagemResponseDTO> findAllPosts();
 

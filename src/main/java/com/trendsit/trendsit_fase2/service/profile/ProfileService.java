@@ -1,5 +1,6 @@
 package com.trendsit.trendsit_fase2.service.profile;
 
+import com.trendsit.trendsit_fase2.dto.diretorio.DiretorioDTO;
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.dto.profile.*;
 import com.trendsit.trendsit_fase2.dto.auth.AuthProfileDTO;
@@ -42,6 +43,8 @@ public interface ProfileService {
     List<ProfileAdminDTO> findAllForAdmin();
 
     List<ProfilePublicoDTO> findAllPublicoProfiles();
+
+    List<DiretorioDTO> findAllDiretorio();
 
     Profile atualizarPerfilAdmin(UUID userId, ProfileAdminUpdateDTO dto);
 

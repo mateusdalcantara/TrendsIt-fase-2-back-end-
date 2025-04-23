@@ -23,20 +23,18 @@ public interface ProfileRepository extends JpaRepository<Profile, UUID> {
     boolean existsByFriendNumber(Long friendNumber);
     Optional<Profile> findByFriendNumber(Long friendNumber);
 
-    @Query("SELECT p FROM Profile p WHERE p.diretorio.id = :diretorioId")
-    List<Profile> findAllByDiretorioId(@Param("diretorioId") Long diretorioId);
+    Optional<Profile> findById(UUID userId);
 
     @Query("""
-        select distinct p 
-        from Profile p
-        left join fetch p.following f
-        left join fetch f.postagens
-        left join fetch f.comentarios
-        where p.id = :id
-    """)
-    Optional<Profile> findByIdWithFriendsContent(@Param("id") UUID id);
+    SELECT p 
+    FROM Profile p 
+    WHERE p.diretorio.id = :diretorioId 
+    AND p.role = 'ALUNO'
+""")
+    List<Profile> findAlunosByDiretorioId(@Param("diretorioId") Long diretorioId);
 
-    Optional<Profile> findById(UUID userId);
+    @Query("SELECT p FROM Profile p WHERE p.diretorio.id = :diretorioId")
+    List<Profile> findAllByDiretorioId(@Param("diretorioId") Long diretorioId);
 
     @Query("SELECT p FROM Profile p LEFT JOIN FETCH p.following")
     @EntityGraph(attributePaths = {"following"})

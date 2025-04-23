@@ -40,7 +40,7 @@ public class ComentarioServiceImpl implements ComentarioService {
 
     @Override
     @Transactional
-    public Comentario adicionarComentario(ComentarioDTO comentarioDTO, UUID autorId, Long postId) {
+    public Comentario adicionarComentario(String conteudo, UUID autorId, Long postId) {
         Profile autor = profileRepository.findById(autorId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
@@ -48,12 +48,9 @@ public class ComentarioServiceImpl implements ComentarioService {
                 .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
 
         Comentario comentario = new Comentario();
-        comentario.setConteudo(comentarioDTO.getConteudo());
+        comentario.setConteudo(conteudo);
         comentario.setAutor(autor);
         comentario.setPostagem(postagem);
-
-        // Force immediate flush to generate the ID
-        comentario = comentarioRepository.saveAndFlush(comentario);
 
         return comentarioRepository.save(comentario);
     }

@@ -20,8 +20,8 @@ public class DiretorioDTO {
         this.id = diretorio.getId();
         this.turma = diretorio.getTurma();
 
-        if(diretorio.getProfessor() != null) {
-            this.professor = new ProfilePublicoDTO(diretorio.getProfessor());
+        if(diretorio.getPrimaryProfessor() != null) {
+            this.professor = new ProfilePublicoDTO(diretorio.getPrimaryProfessor());
         }
 
         this.alunos = diretorio.getAlunos().stream()

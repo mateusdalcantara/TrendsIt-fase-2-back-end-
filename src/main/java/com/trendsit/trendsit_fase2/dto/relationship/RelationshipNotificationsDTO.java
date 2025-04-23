@@ -1,21 +1,33 @@
 package com.trendsit.trendsit_fase2.dto.relationship;
 
+import com.trendsit.trendsit_fase2.dto.evento.EventNotificationDTO;
+import com.trendsit.trendsit_fase2.dto.notification.VacancyNotificationDTO;
 import lombok.Getter;
 import java.util.List;
 
 @Getter
 public class RelationshipNotificationsDTO {
-    private final List<FriendRequestDTO> receivedPendingRequests;
-    private final List<FriendRequestDTO> sentPendingRequests;
-    private final List<FollowerDTO> followers;
+    private List<FriendRequestDTO> receivedRequests;
+    private List<FriendRequestDTO> sentRequests;
+    private List<FollowerDTO> followers;
+    private List<VacancyNotificationDTO> vacancyNotifications; // Campo unificado
+    private List<EventNotificationDTO> eventNotifications;
 
+    // Construtor com todos os campos
     public RelationshipNotificationsDTO(
-            List<FriendRequestDTO> receivedPendingRequests,
-            List<FriendRequestDTO> sentPendingRequests,
-            List<FollowerDTO> followers
+            List<FriendRequestDTO> receivedRequests,
+            List<FriendRequestDTO> sentRequests,
+            List<FollowerDTO> followers,
+            List<VacancyNotificationDTO> vacancyNotifications,
+            List<EventNotificationDTO> eventNotifications
     ) {
-        this.receivedPendingRequests = receivedPendingRequests;
-        this.sentPendingRequests = sentPendingRequests;
+        this.receivedRequests = receivedRequests;
+        this.sentRequests = sentRequests;
         this.followers = followers;
+        this.vacancyNotifications = vacancyNotifications;
+        this.eventNotifications = eventNotifications;
+
     }
+
+    // Getters
 }

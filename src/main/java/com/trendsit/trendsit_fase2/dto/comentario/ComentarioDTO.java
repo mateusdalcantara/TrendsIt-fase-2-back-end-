@@ -14,10 +14,10 @@ public class ComentarioDTO {
     private LocalDateTime createdAt;
     private Long postagemId;
 
-    public ComentarioDTO(Long id, String conteudo, LocalDateTime createdAt, Long id1) {
-      this.id = id;
-      this.conteudo = conteudo;
-      this.createdAt = createdAt;
-      this.postagemId = getPostagemId();
+    public ComentarioDTO(Long id, String conteudo, LocalDateTime createdAt, Long postagemId) {
+        this.id = id;
+        this.conteudo = conteudo;
+        this.createdAt = createdAt;
+        this.postagemId = postagemId;
     }
 }

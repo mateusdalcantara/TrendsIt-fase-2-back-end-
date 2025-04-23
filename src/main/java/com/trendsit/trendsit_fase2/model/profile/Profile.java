@@ -81,6 +81,7 @@ public class Profile implements UserDetails {
     @JoinColumn(name = "group_id")
     private Group group;
 
+    @Setter
     @Column(name = "curso")
     private String curso;
 

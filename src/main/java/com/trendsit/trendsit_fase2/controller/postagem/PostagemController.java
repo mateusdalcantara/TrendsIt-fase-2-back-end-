@@ -1,9 +1,6 @@
 package com.trendsit.trendsit_fase2.controller.postagem;
 
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemRequestDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseAdminDTO;
-import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
+import com.trendsit.trendsit_fase2.dto.postagem.*;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
@@ -52,9 +49,10 @@ public class PostagemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<PostagemResponseDTO>> getAllPosts() {
-        List<PostagemResponseDTO> postagens = postagemService.findAllPosts();
-        return ResponseEntity.ok(postagens);
+    public ResponseEntity<List<PostagemWithCommentsDTO>> getAllPosts() {
+        return ResponseEntity.ok(
+                postagemService.findAllPostsWithComments()
+        );
     }
 
     @GetMapping("/admin/Posts")

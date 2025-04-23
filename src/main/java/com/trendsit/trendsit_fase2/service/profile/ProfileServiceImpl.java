@@ -1,6 +1,7 @@
 package com.trendsit.trendsit_fase2.service.profile;
 
 
+import com.trendsit.trendsit_fase2.dto.diretorio.DiretorioDTO;
 import com.trendsit.trendsit_fase2.dto.postagem.PostagemResponseDTO;
 import com.trendsit.trendsit_fase2.dto.profile.*;
 import com.trendsit.trendsit_fase2.dto.auth.AuthProfileDTO;
@@ -172,6 +173,13 @@ public class ProfileServiceImpl implements ProfileService {
                 .collect(Collectors.toList());
     }
 
+    public List<DiretorioDTO> findAllDiretorio() {
+        List<Diretorio> diretorios = diretorioRepository.findAllWithRelations();
+        return diretorios.stream()
+                .map(DiretorioDTO::new)
+                .collect(Collectors.toList());
+    }
+
 
     @Override
     public Profile atualizarPerfilAdmin(UUID userId, ProfileAdminUpdateDTO dto) {
@@ -189,7 +197,7 @@ public class ProfileServiceImpl implements ProfileService {
             Diretorio diretorio = diretorioRepository.findById(dto.getDiretorioId())
                     .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
             profile.setDiretorio(diretorio);
-            profile.setDiretorioNome(diretorio.getNome()); // Define o nome do diretório
+            profile.setDiretorioNome(diretorio.getTituloDoCurso()); // Define o nome do diretório
         } else {
             profile.setDiretorio(null);
             profile.setDiretorioNome(null);

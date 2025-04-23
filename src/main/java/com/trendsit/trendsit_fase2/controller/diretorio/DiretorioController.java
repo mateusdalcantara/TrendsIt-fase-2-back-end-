@@ -1,7 +1,6 @@
 package com.trendsit.trendsit_fase2.controller.diretorio;
 
-import com.trendsit.trendsit_fase2.dto.diretorio.DiretorioDTO;
-import com.trendsit.trendsit_fase2.dto.diretorio.DiretorioUpdateDTO;
+import com.trendsit.trendsit_fase2.dto.diretorio.*;
 import com.trendsit.trendsit_fase2.dto.profile.ProfileResponseDTO;
 import com.trendsit.trendsit_fase2.exception.EntityNotFoundException;
 import com.trendsit.trendsit_fase2.model.diretorio.Diretorio;
@@ -9,7 +8,6 @@ import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import com.trendsit.trendsit_fase2.service.diretorio.DiretorioServiceImpl;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.User;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -26,35 +24,27 @@ public class DiretorioController {
     private final DiretorioServiceImpl diretorioService;
     private final ProfileRepository profileRepository;
 
+
     @GetMapping("/obterdiretorio")
     @PreAuthorize("hasAnyRole('PROFESSOR', 'ADMIN')")
     public ResponseEntity<List<DiretorioDTO>> findAllDiretorio() {
         return ResponseEntity.ok(diretorioService.findAllDiretorio());
     }
 
-    @GetMapping("/alunos")
-    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
-    public ResponseEntity<List<ProfileResponseDTO>> getClassmates(
-            @AuthenticationPrincipal User user) {
-
-        UUID requesterId = UUID.fromString(user.getUsername());
-        return ResponseEntity.ok(diretorioService.FindProfileAllSameClass(requesterId));
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Diretorio> criarDiretorio(@RequestBody DiretorioRequestDTO request) {
+        Diretorio novoDiretorio = diretorioService.criarDiretorio(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(novoDiretorio);
     }
 
-    @GetMapping("/alunos/{alunoId}")
-    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
-    public ResponseEntity<ProfileResponseDTO> getClassmateById(
-            @PathVariable UUID alunoId,
-            @AuthenticationPrincipal User user) {
-
-        UUID requesterId = UUID.fromString(user.getUsername());
-        return ResponseEntity.ok(diretorioService.findProfileByIdSameClass(alunoId, requesterId));
-    }
-
-    @PostMapping("/{turmanome}/createDirectory")
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    public void createDirectory(@PathVariable String turmanome){
-        diretorioService.CreateDirectory(turmanome);
+    @GetMapping("/aluno/meu-diretorio")
+    @PreAuthorize("hasRole('ALUNO')")
+    public ResponseEntity<TurmaAlunoDTO> listarMeusColegas(
+            @AuthenticationPrincipal Profile profile
+    ) {
+        TurmaAlunoDTO dto = diretorioService.listarMeusColegas(profile.getId());
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping("/setteacher/{diretorioid}")
@@ -65,7 +55,7 @@ public class DiretorioController {
 
         try {
             Diretorio diretorio = diretorioService.addProfessor(professorId, diretorioid);
-            return ResponseEntity.ok(new ProfileResponseDTO(diretorio.getProfessor()));
+            return ResponseEntity.ok(new ProfileResponseDTO(diretorio.getPrimaryProfessor()));
         } catch (EntityNotFoundException ex) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
         } catch (IllegalArgumentException ex) {
@@ -83,8 +73,6 @@ public class DiretorioController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
         }
     }
-
-
 
     @PostMapping("/{turmaId}/alunos")
     @PreAuthorize("hasAnyRole('ADMIN')")
@@ -132,5 +120,6 @@ public class DiretorioController {
         diretorioService.removeAlunoFromDiretorio(alunoId, diretorioId);
         return ResponseEntity.noContent().build();
     }
+
 
 }

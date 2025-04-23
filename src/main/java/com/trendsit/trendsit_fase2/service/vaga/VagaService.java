@@ -11,6 +11,7 @@ import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import com.trendsit.trendsit_fase2.repository.vaga.VagaRepository;
 import com.trendsit.trendsit_fase2.service.auth.AuthorizationService;
+import com.trendsit.trendsit_fase2.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
@@ -25,17 +26,19 @@ public class VagaService {
     private final ProfileRepository profileRepository;
     private final AuthorizationService authorizationService;
     private final EventoRepository eventoRepository;
+    private final NotificationService notificationService;
 
     public VagaService(
             VagaRepository vagaRepository,
             ProfileRepository profileRepository,
             AuthorizationService authorizationService,
-            EventoRepository eventoRepository
+            EventoRepository eventoRepository, NotificationService notificationService
     ) {
         this.vagaRepository = vagaRepository;
         this.profileRepository = profileRepository;
         this.authorizationService = authorizationService;
         this.eventoRepository = eventoRepository;
+        this.notificationService = notificationService;
     }
 
     // Listar vagas aprovadas (usuários comuns)
@@ -156,6 +159,20 @@ public class VagaService {
         evento.setStatus(status);
 
         return eventoRepository.save(evento);
+    }
+
+    public Vaga moderateVaga(Long id, Vaga.Status status, UUID adminId, String rejectionReason) {
+        Vaga vaga = vagaRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Vaga não encontrada"));
+
+        vaga.setStatus(status);
+        Vaga updatedVaga = vagaRepository.save(vaga);
+
+        if (status == Vaga.Status.REJEITADO || status == Vaga.Status.APROVADO) {
+            notificationService.createVacancyNotification(vaga, status, rejectionReason);
+        }
+
+        return updatedVaga;
     }
 
 }

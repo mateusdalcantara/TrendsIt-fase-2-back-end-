@@ -57,7 +57,7 @@ public class EventoController {
     }
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO', 'ADMIN')")
     public ResponseEntity<EventoResponseDTO> criarEvento(
             @Valid @RequestBody EventoDTO eventoDto,
             @AuthenticationPrincipal Profile profile) {
@@ -70,16 +70,22 @@ public class EventoController {
     public ResponseEntity<EventoResponseDTO> atualizarStatusEvento(
             @PathVariable Long codigoEvento,
             @RequestParam Evento.Status status,
-            @AuthenticationPrincipal Profile admin) throws AccessDeniedException { // Inject admin user
+            @RequestParam(required = false) String rejectionReason, // Novo parâmetro
+            @AuthenticationPrincipal Profile admin) throws AccessDeniedException {
 
-        // Pass all 3 required parameters
-        Evento updatedEvent = eventoService.updateEventStatus(codigoEvento, status, admin.getId());
+        Evento updatedEvent = eventoService.updateEventStatus(
+                codigoEvento,
+                status,
+                admin.getId(),
+                rejectionReason // Passa o motivo
+        );
+
         return ResponseEntity.ok(new EventoResponseDTO(updatedEvent));
     }
 
 
     @PutMapping("/{codigoEvento}")
-    @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO', 'ADMIN')")
     public ResponseEntity<EventoResponseDTO> atualizarEvento(
             @PathVariable Long codigoEvento,
             @Valid @RequestBody EventoDTO eventoDTO,

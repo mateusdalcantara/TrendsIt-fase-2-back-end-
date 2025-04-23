@@ -9,6 +9,7 @@ import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import com.trendsit.trendsit_fase2.service.auth.AuthorizationService;
+import com.trendsit.trendsit_fase2.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,10 +28,12 @@ public class EventoService {
     AuthorizationService authorizationService;
     EventoRepository eventoRepository;
     ProfileRepository profileRepository;
+    NotificationService notificationService;
     public EventoService(EventoRepository eventoRepository, ProfileRepository profileRepository, AuthorizationService authorizationService){
         this.eventoRepository = eventoRepository;
         this.profileRepository = profileRepository;
         this.authorizationService = authorizationService;
+        NotificationService notificationService;
 
     }
 
@@ -110,9 +113,10 @@ public class EventoService {
         return codigo;
     }
 
-    public Evento updateEventStatus(Long codigoEvento, Evento.Status status, UUID adminId) throws AccessDeniedException {
-        // 1. Find event by codigoEvento
-        Evento evento = (Evento) eventoRepository.findByCodigoEvento(codigoEvento)
+    public Evento updateEventStatus(Long codigoEvento, Evento.Status status, UUID adminId, String rejectionReason)
+            throws AccessDeniedException {
+
+        Evento evento = eventoRepository.findByCodigoEvento(codigoEvento)
                 .orElseThrow(() -> new EntityNotFoundException("Evento não encontrado"));
 
         // 2. Verify admin privileges
@@ -125,8 +129,16 @@ public class EventoService {
 
         // 3. Update status
         evento.setStatus(status);
-        return eventoRepository.save(evento);
+        Evento updatedEvento = eventoRepository.save(evento);
+
+        // Cria notificação se aprovado/rejeitado
+        if (status == Evento.Status.APROVADO || status == Evento.Status.REJEITADO) {
+            notificationService.createEventNotification(updatedEvento, status, rejectionReason);
+        }
+
+        return updatedEvento;
     }
+
 
     @Transactional
     public void deleteEvento(Long codigoEvento, UUID adminId) throws AccessDeniedException {

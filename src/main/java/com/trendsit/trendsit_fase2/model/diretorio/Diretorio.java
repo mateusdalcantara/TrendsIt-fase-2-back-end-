@@ -5,9 +5,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Getter
 @Setter
@@ -22,21 +20,24 @@ public class Diretorio {
     private String turma;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "professor_id") // Nome da coluna FK
-    private Profile professor;
+    @JoinColumn(name = "professor_id")
+    private Profile primaryProfessor;
 
-    @OneToMany(mappedBy = "diretorio")
-    private List<Profile> alunos = new ArrayList<>();
+    @OneToMany(mappedBy = "diretorio", fetch = FetchType.LAZY)
+    private List<Profile> alunos;
 
-    @Column(nullable = false, unique = true)
-    private String nome;
+    @Column(name = "titulo_do_curso")
+    private String tituloDoCurso;
+
 
     public void addAluno(Profile aluno) {
         if (!this.alunos.contains(aluno)) {
             this.alunos.add(aluno);
             aluno.setDiretorio(this);
+            aluno.setCurso(this.tituloDoCurso); // Atribui o nome do diretório ao curso do aluno
         }
     }
+
     public void clearAlunos() {
         this.alunos.forEach(aluno -> aluno.setDiretorio(null));
         this.alunos.clear();
@@ -45,6 +46,6 @@ public class Diretorio {
         if (this.alunos.remove(aluno)) {
             aluno.setDiretorio(null);
         }
-
     }
+
 }

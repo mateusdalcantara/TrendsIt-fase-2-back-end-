@@ -35,6 +35,7 @@ public interface PostagemRepository extends JpaRepository<Postagem, Long> {
     @Query("SELECT p FROM Postagem p LEFT JOIN FETCH p.comentarios WHERE p.autor.id IN :autorIds")
     List<Postagem> findByAutorIdWithComentarios(@Param("autorIds") List<UUID> autorIds);
 
+
     List<Postagem> findByAutor_IdIn(List<UUID> autorIds);
 
     @Query("SELECT p FROM Postagem p JOIN FETCH p.autor WHERE p.autor.id IN :autorIds")

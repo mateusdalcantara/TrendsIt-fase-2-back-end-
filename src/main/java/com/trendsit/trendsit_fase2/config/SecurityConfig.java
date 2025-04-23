@@ -71,7 +71,8 @@ public class SecurityConfig {
                                 "/job"
                         ).permitAll()
                         // Endpoint específico do perfil do usuário autenticado
-                        .requestMatchers(HttpMethod.GET, "/profiles/meu-perfil").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/profiles/meu-perfil",
+                                "/api/diretorio/meus-membros").authenticated()
 
                         // POST and PUT for creation/update, based on role
                         .requestMatchers(HttpMethod.POST,
@@ -83,8 +84,8 @@ public class SecurityConfig {
                                 "/api/follow/**",
                                 "/events",
                                 "/job/create-job-opportunity"
-                        ).hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.PUT, "/events/**").hasAnyRole("USER", "ADMIN")
+                        ).hasAnyRole("ALUNO", "ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/events/**").hasAnyRole("ALUNO", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/events/*/status").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/groups/**").hasAnyRole("ALUNO", "PROFESSOR", "ADMIN")
 
@@ -107,7 +108,7 @@ public class SecurityConfig {
                         // DELETE directorate: only teacher or admin for removing aluno
                         .requestMatchers(HttpMethod.DELETE,
                                 "/api/diretorio/*/alunos/*"
-                        ).hasAnyRole("ADMIN", "TEACHER")
+                        ).hasAnyRole("ADMIN", "PROFESSOR")
                         // DELETE directorate itself: only admin
                         .requestMatchers(HttpMethod.DELETE,
                                 "/api/diretorio/**"

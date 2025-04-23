@@ -1,5 +1,6 @@
 package com.trendsit.trendsit_fase2.controller.comentario;
 
+import com.trendsit.trendsit_fase2.dto.comentario.ComentarioCreateDTO;
 import com.trendsit.trendsit_fase2.dto.comentario.ComentarioDTO;
 import com.trendsit.trendsit_fase2.dto.comentario.ComentarioResponseDTO;
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
@@ -36,15 +37,15 @@ public class ComentarioController {
     @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
     public ResponseEntity<ComentarioResponseDTO> adicionarComentario(
             @PathVariable Long postId,
-            @Valid @RequestBody ComentarioDTO comentarioDto,
+            @Valid @RequestBody ComentarioCreateDTO comentarioDto,
             @AuthenticationPrincipal Profile profile
     ) {
         Comentario novoComentario = comentarioService.adicionarComentario(
-                comentarioDto,
+                comentarioDto.getConteudo(),
                 profile.getId(),
                 postId
         );
-        return ResponseEntity.ok(new ComentarioResponseDTO(novoComentario)); // Return DTO
+        return ResponseEntity.ok(new ComentarioResponseDTO(novoComentario));
     }
 
     @PutMapping("/{commentId}")
@@ -75,9 +76,13 @@ public class ComentarioController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping
-    public ResponseEntity<List<ComentarioResponseDTO>> getComentarios(@PathVariable Long postId) {
-        List<ComentarioResponseDTO> comentarios = comentarioService.findByPostagemId(postId);
-        return ResponseEntity.ok(comentarios);
+    @GetMapping("/meus")
+    @PreAuthorize("hasAnyRole('ALUNO','PROFESSOR','ADMIN')")
+    public ResponseEntity<List<ComentarioResponseDTO>> listarMeusComentarios(
+            @AuthenticationPrincipal Profile profile
+    ) {
+        List<ComentarioResponseDTO> meus = comentarioService
+                .findComentariosByAutorId(profile.getId());
+        return ResponseEntity.ok(meus);
     }
 }

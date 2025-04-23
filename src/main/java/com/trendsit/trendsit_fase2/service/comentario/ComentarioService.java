@@ -12,7 +12,6 @@ import java.util.UUID;
 @Service
 public interface ComentarioService {
 
-    Comentario adicionarComentario(ComentarioDTO comentarioDTO, UUID autorId, Long postId);
     Optional<Comentario> findById(Long comentarioId);
     boolean isOwnerOrAdmin(Comentario comentario, UUID currentUserId);
     List<ComentarioResponseDTO> findByPostIdAndAutorId(Long postId, UUID autorId);
@@ -20,4 +19,6 @@ public interface ComentarioService {
     List<ComentarioResponseDTO> findByPostagemId(Long postId);
     Comentario updateComentario(Long comentarioId, Long postId, ComentarioDTO comentarioDTO, UUID currentUserId);
     void deleteComentario(Long postId, Long comentarioId, UUID currentUserId);
+    Comentario adicionarComentario(String conteudo, UUID autorId, Long postId);
+
 }

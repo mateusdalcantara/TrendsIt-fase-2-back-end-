@@ -1,7 +1,7 @@
 package com.trendsit.trendsit_fase2.service.diretorio;
 
-import com.trendsit.trendsit_fase2.dto.diretorio.DiretorioDTO;
-import com.trendsit.trendsit_fase2.dto.diretorio.DiretorioUpdateDTO;
+import com.trendsit.trendsit_fase2.dto.diretorio.*;
+
 import com.trendsit.trendsit_fase2.dto.profile.ProfileResponseDTO;
 import com.trendsit.trendsit_fase2.exception.CustomExceptions;
 import com.trendsit.trendsit_fase2.exception.EntityNotFoundException;
@@ -10,9 +10,9 @@ import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.diretorio.DiretorioRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
-import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,7 +20,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class DiretorioServiceImpl {
+public class DiretorioServiceImpl implements DiretorioService {
     private final DiretorioRepository diretorioRepository;
 
     private final ProfileRepository profileRepository;
@@ -30,11 +30,69 @@ public class DiretorioServiceImpl {
         this.profileRepository = profileRepository;
     }
 
+    @Override
     public List<DiretorioDTO> findAllDiretorio() {
-        return diretorioRepository.findAll().stream()
-                .map(d -> new DiretorioDTO(diretorioRepository.findByIdWithRelations(d.getId()).get()))
+        List<Diretorio> diretorios = diretorioRepository.findAllWithRelations();
+        return diretorios.stream()
+                .map(DiretorioDTO::new)
                 .collect(Collectors.toList());
     }
+
+    // DiretorioServiceImpl.java
+    @Override
+    public List<Profile> getAlunos() {
+        Diretorio diretorio = diretorioRepository.findByTituloDoCurso("Turma A") // Updated method name
+                .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
+
+        return new ArrayList<>(diretorio.getAlunos());
+    }
+
+    // Cria o diretório
+    public Diretorio criarDiretorio(DiretorioRequestDTO request) {
+        // Busca o professor pelo ID
+        Profile professor = profileRepository.findById(request.getProfessorId())
+                .orElseThrow(() -> new EntityNotFoundException("Professor não encontrado"));
+
+        // Cria o diretório
+        Diretorio diretorio = new Diretorio();
+        diretorio.setTurma(request.getTurma());
+        diretorio.setTituloDoCurso(request.getTituloDoCurso());
+        diretorio.setPrimaryProfessor(professor); // Associa o professor
+
+        return diretorioRepository.save(diretorio);
+    }
+
+
+    @Override
+    public TurmaAlunoDTO listarMeusColegas(UUID alunoId) {
+        Profile aluno = profileRepository.findById(alunoId)
+                .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
+
+        // Verificação de papel
+        if (aluno.getRole() != ProfileRole.ALUNO) {
+            throw new AccessDeniedException("Acesso permitido apenas para alunos");
+        }
+
+        // Busca o diretório COM alunos
+        Diretorio dir = diretorioRepository
+                .findByIdWithAlunos(aluno.getDiretorio().getId())
+                .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
+
+        // Filtra e mapeia colegas
+        List<AlunoDTO> colegas = dir.getAlunos().stream()
+                .filter(p -> p.getRole() == ProfileRole.ALUNO)
+                .map(p -> new AlunoDTO(
+                        p.getUsername(),
+                        dir.getTituloDoCurso(), // Usa o título do diretório
+                        p.getFriendNumber(),
+                        p.getCreatedAt()
+                ))
+                .toList();
+
+        return new TurmaAlunoDTO(dir.getTurma(), colegas);
+    }
+
+
 
     public List<ProfileResponseDTO> FindProfileAllSameClass(UUID requesterId) {
         Profile requester = profileRepository.findById(requesterId).orElseThrow(()->new EntityNotFoundException("Perfil não achado"));
@@ -81,7 +139,6 @@ public class DiretorioServiceImpl {
         return new ProfileResponseDTO(target);
     }
 
-
     public ProfileResponseDTO findProfileByFriendNumberSameClass(Long friendNumber, UUID requesterId) {
         Profile requester = profileRepository.findById(requesterId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil solicitante não encontrado"));
@@ -108,6 +165,7 @@ public class DiretorioServiceImpl {
         diretorio.setTurma(Turma);
         diretorioRepository.save(diretorio);
     }
+
     @Transactional
     public Diretorio addProfessor(UUID professorId, Long turmaId) {
         Profile professor = profileRepository.findById(professorId)
@@ -120,7 +178,7 @@ public class DiretorioServiceImpl {
         Diretorio diretorio = diretorioRepository.findById(turmaId)
                 .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
 
-        diretorio.setProfessor(professor);
+        diretorio.setPrimaryProfessor(professor);
         return diretorioRepository.save(diretorio);
     }
 
@@ -129,7 +187,7 @@ public class DiretorioServiceImpl {
         Diretorio diretorio = diretorioRepository.findById(turmaId)
                 .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
 
-        diretorio.setProfessor(null);
+        diretorio.setPrimaryProfessor(null);
         return diretorioRepository.save(diretorio);
     }
 
@@ -140,12 +198,25 @@ public class DiretorioServiceImpl {
 
         Profile aluno = profileRepository.findById(alunoId)
                 .orElseThrow(() -> new EntityNotFoundException("Aluno não encontrado"));
-        if (aluno.getRole() != ProfileRole.ALUNO){
-            throw new IllegalArgumentException("Usuario nao é aluno");
-        }else {
+
         diretorio.addAluno(aluno);
         diretorioRepository.save(diretorio);
-    }}
+    }
+
+    @Transactional
+    public void addAlunos(List<UUID> alunosIds, Long turmaId) {
+        Diretorio diretorio = diretorioRepository.findById(turmaId)
+                .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
+
+        List<Profile> alunos = profileRepository.findAllById(alunosIds);
+
+        if (alunos.size() != alunosIds.size()) {
+            throw new EntityNotFoundException("Um ou mais alunos não encontrados");
+        }
+
+        alunos.forEach(diretorio::addAluno);
+        diretorioRepository.save(diretorio);
+    }
 
     @Transactional
     public void deleteDiretorio(Long diretorioId) {
@@ -156,7 +227,7 @@ public class DiretorioServiceImpl {
         diretorio.clearAlunos();
 
         // Remove professor
-        diretorio.setProfessor(null);
+        diretorio.setPrimaryProfessor(null);
 
         diretorioRepository.delete(diretorio);
     }
@@ -189,11 +260,12 @@ public class DiretorioServiceImpl {
             if (professor.getRole() != ProfileRole.PROFESSOR) {
                 throw new IllegalArgumentException("O perfil deve ser um professor");
             }
-            diretorio.setProfessor(professor);
+            diretorio.setPrimaryProfessor(professor);
         }
 
         return new DiretorioDTO(diretorioRepository.save(diretorio));
     }
+
 
     @Transactional
     public void removeAlunoFromDiretorio(UUID alunoId, Long diretorioId) {
@@ -206,6 +278,7 @@ public class DiretorioServiceImpl {
         diretorio.removeAluno(aluno);
         diretorioRepository.save(diretorio);
     }
+
 }
 
 
