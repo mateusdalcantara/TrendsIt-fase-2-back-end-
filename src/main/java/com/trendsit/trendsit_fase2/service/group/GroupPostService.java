@@ -100,9 +100,15 @@ public class GroupPostService {
 
     @Transactional
     public void deleteComment(UUID commentId, Profile currentUser) {
-        GroupPostComment comment = commentRepository.findByIdWithAuthor(commentId)
+        // Busca o comentário com relacionamentos necessários
+        GroupPostComment comment = commentRepository.findByIdWithPostAndGroupAndAuthor(commentId)
                 .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
 
+        // Validações implícitas (opcional, mas recomendado)
+        UUID postId = comment.getPost().getId();
+        UUID groupId = comment.getPost().getGroup().getId();
+
+        // Verifica permissões
         boolean isOwner = comment.getAuthor().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == ProfileRole.ADMIN;
 
@@ -139,26 +145,24 @@ public class GroupPostService {
 
     @Transactional
     public GroupPostComment updateComment(
-            UUID groupId,
             UUID postId,
             UUID commentId,
             String newContent,
             Profile currentUser
     ) {
-        // Busca comentário com todos os relacionamentos necessários
+        // Busca o comentário com a postagem e grupo relacionados
         GroupPostComment comment = commentRepository.findByIdWithPostAndGroupAndAuthor(commentId)
                 .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
 
-        // Verifica hierarquia (grupo -> post -> comentário)
+        // Verifica se o comentário pertence à postagem (postId)
         if (!comment.getPost().getId().equals(postId)) {
             throw new EntityNotFoundException("Comentário não pertence à postagem");
         }
 
-        if (!comment.getPost().getGroup().getId().equals(groupId)) {
-            throw new EntityNotFoundException("Postagem não pertence ao grupo");
-        }
+        // Obtém o groupId da postagem (não precisa ser validado na URL)
+        UUID groupId = comment.getPost().getGroup().getId();
 
-        // Verifica permissões
+        // Verifica se o usuário tem permissão (dono do comentário ou admin)
         boolean isOwner = comment.getAuthor().getId().equals(currentUser.getId());
         boolean isAdmin = currentUser.getRole() == ProfileRole.ADMIN;
 
@@ -166,7 +170,7 @@ public class GroupPostService {
             throw new AccessDeniedException("Somente o autor ou administradores podem editar este comentário");
         }
 
-        // Atualiza conteúdo
+        // Atualiza o conteúdo
         comment.setContent(newContent);
         return commentRepository.save(comment);
     }

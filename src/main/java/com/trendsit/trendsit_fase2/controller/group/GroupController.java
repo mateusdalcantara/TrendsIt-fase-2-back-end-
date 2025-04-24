@@ -71,12 +71,13 @@ public class GroupController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO')")
+    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO', 'ADMIN')") // Adicione ADMIN
     public ResponseEntity<GroupDTO> editarGrupo(
-            @PathVariable UUID id, // Tipo UUID
-            @RequestBody CreateGroupRequest request
+            @PathVariable UUID id,
+            @RequestBody CreateGroupRequest request,
+            @AuthenticationPrincipal Profile currentUser // Adicione esta linha
     ) {
-        return ResponseEntity.ok(groupService.editarGrupo(id, request));
+        return ResponseEntity.ok(groupService.editarGrupo(id, request, currentUser)); // Passe o usuário
     }
 
     @DeleteMapping("/{id}")
@@ -121,7 +122,7 @@ public class GroupController {
     }
 
     @DeleteMapping("/{groupId}/membros/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')") // Permite ao dono (que pode ser aluno/professor)
     public ResponseEntity<Void> removerMembro(
             @PathVariable UUID groupId,
             @PathVariable UUID userId,
@@ -132,8 +133,13 @@ public class GroupController {
     }
 
     @DeleteMapping("/convites/recusar")
-    public void recusarConvite(@RequestParam UUID groupId, @RequestParam UUID userId) {
-        groupService.recusarConvite(groupId, userId);  // Passando Long para o serviço
+    public ResponseEntity<Void> recusarConvite(
+            @RequestParam UUID groupId,
+            @RequestParam UUID userId,
+            @AuthenticationPrincipal Profile currentUser
+    ) {
+        groupService.recusarConvite(groupId, userId, currentUser);
+        return ResponseEntity.noContent().build();
     }
 
 }

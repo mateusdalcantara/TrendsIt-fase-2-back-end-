@@ -29,6 +29,14 @@ public class Evento implements OwnableEntity {
     @Column(name = "codigo_evento", unique = true, nullable = false)
     private Long codigoEvento;
 
+    @ManyToOne
+    @JoinColumn(name = "creator_id") // Adjust column name as needed
+    private Profile creator;
+
+    @ManyToOne
+    @JoinColumn(name = "autor_id") // Nome da coluna no banco
+    private Profile autor;
+
     private String titulo;
     private String conteudo;
     private LocalDateTime dataEvento;
@@ -40,6 +48,4 @@ public class Evento implements OwnableEntity {
     @Enumerated(EnumType.STRING)
     private Status status = Status.PENDENTE;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Profile autor;
 }

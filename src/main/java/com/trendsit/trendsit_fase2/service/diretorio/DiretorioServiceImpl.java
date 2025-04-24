@@ -30,6 +30,10 @@ public class DiretorioServiceImpl implements DiretorioService {
         this.profileRepository = profileRepository;
     }
 
+    public List<Profile> findAllProfessores() {
+        return profileRepository.findByRole(ProfileRole.PROFESSOR);
+    }
+
     @Override
     public List<DiretorioDTO> findAllDiretorio() {
         List<Diretorio> diretorios = diretorioRepository.findAllWithRelations();
@@ -212,17 +216,33 @@ public class DiretorioServiceImpl implements DiretorioService {
     }
 
     @Transactional
-    public void deleteDiretorio(Long diretorioId) {
-        Diretorio diretorio = diretorioRepository.findById(diretorioId)
+    public void deleteDiretorio(Long id) {
+        // Busca o diretório com todas as relações necessárias
+        Diretorio diretorio = diretorioRepository.findByIdWithRelations(id)
                 .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
 
-        // Remove associação dos alunos
-        diretorio.clearAlunos();
+        // 1. Remove professor principal
+        if(diretorio.getPrimaryProfessor() != null) {
+            Profile professor = diretorio.getPrimaryProfessor();
+            professor.setDiretorio(null); // Remove o vínculo
+            profileRepository.saveAndFlush(professor); // Força a persistência
+        }
 
-        // Remove professor
-        diretorio.setPrimaryProfessor(null);
+        // 2. Remove todos os alunos
+        if(!diretorio.getAlunos().isEmpty()) {
+            diretorio.getAlunos().forEach(aluno -> {
+                aluno.setDiretorio(null);
+                profileRepository.save(aluno);
+            });
+            profileRepository.flush(); // Garante a persistência
+        }
 
+        // 3. Atualiza o diretório antes de deletar
+        diretorioRepository.saveAndFlush(diretorio);
+
+        // 4. Deleta o diretório
         diretorioRepository.delete(diretorio);
+        diretorioRepository.flush(); // Garante a deleção
     }
 
     @Transactional

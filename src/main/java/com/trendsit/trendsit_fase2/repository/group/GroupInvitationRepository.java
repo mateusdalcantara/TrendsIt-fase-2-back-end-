@@ -18,4 +18,6 @@ public interface GroupInvitationRepository extends JpaRepository<GroupInvitation
             UUID invitedUserId,
             GroupInvitation.Status status
     );
+
+    void deleteByInvited(Profile profile);
 }

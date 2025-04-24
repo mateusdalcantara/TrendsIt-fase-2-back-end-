@@ -47,7 +47,7 @@ public class Group {
             joinColumns = @JoinColumn(name = "group_id"),
             inverseJoinColumns = @JoinColumn(name = "profile_id")
     )
-    private Set<Profile> membros = new HashSet<>();
+    private List<Profile> membros = new ArrayList<>();
 
     private LocalDateTime createdAt = LocalDateTime.now();
 }

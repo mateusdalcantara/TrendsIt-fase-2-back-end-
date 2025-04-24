@@ -9,6 +9,7 @@ import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
 import com.trendsit.trendsit_fase2.repository.notification.NotificationRepository;
 import com.trendsit.trendsit_fase2.service.group.GroupInvitation;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
@@ -37,6 +38,16 @@ public class NotificationService {
 
     public void deleteNotificationsByVaga(Vaga vaga) {
         notificationRepository.deleteByVaga(vaga);
+    }
+
+    @Transactional
+    public void deleteGroupInviteNotification(GroupInvitation invitation) {
+        // Implementação 100% segura mesmo sem relação direta
+        notificationRepository.deleteByGroupAndRecipientAndType(
+                invitation.getGroup(),
+                invitation.getInvited(),
+                "GROUP_INVITE"
+        );
     }
 
 
@@ -72,6 +83,15 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
+    @Transactional
+    public void deleteAllNotificationsRelatedToProfile(Profile profile) {
+        // Notificações onde o profile é recipient
+        notificationRepository.deleteByRecipient(profile);
+        // Notificações onde o profile é relacionado (ex: convites)
+        notificationRepository.deleteByInvitationInvited(profile);
+        notificationRepository.deleteByGroupCriador(profile);
+    }
+
     public void createEventNotification(Evento evento, Evento.Status status, String rejectionReason) {
         Notification notification = new Notification();
         notification.setRecipient(evento.getAutor());
@@ -86,12 +106,16 @@ public class NotificationService {
         notificationRepository.save(notification);
     }
 
-    public void deleteGroupInviteNotification(GroupInvitation invitation) {
-        // Deleta notificações do tipo GROUP_INVITE para o grupo e destinatário
-        notificationRepository.deleteByGroupAndRecipientAndType(
-                invitation.getGroup(),
-                invitation.getInvited(),
-                "GROUP_INVITE"
-        );
+
+    @Transactional
+    public void deleteAllByProfile(Profile profile) {
+        // Deleta notificações onde o perfil é o destinatário
+        notificationRepository.deleteByRecipient(profile);
+
+        // Deleta notificações onde o perfil é o convidado em um convite
+        notificationRepository.deleteByInvitationInvited(profile);
+
+        // Deleta notificações onde o perfil é o criador de um grupo
+        notificationRepository.deleteByGroupCriador(profile);
     }
 }

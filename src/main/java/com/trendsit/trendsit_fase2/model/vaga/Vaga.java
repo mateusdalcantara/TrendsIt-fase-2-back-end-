@@ -23,6 +23,10 @@ public class Vaga implements OwnableEntity {
     @Column(name = "codigo_vaga", unique = true, nullable = false)
     private Long codigoVaga;
 
+    @ManyToOne
+    @JoinColumn(name = "criador_id")
+    private Profile criador;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

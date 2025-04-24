@@ -10,20 +10,7 @@ import com.trendsit.trendsit_fase2.model.friendship.Friendship;
 import com.trendsit.trendsit_fase2.model.group.Group;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
 import com.trendsit.trendsit_fase2.model.vaga.Vaga;
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import net.minidev.json.annotate.JsonIgnore;
@@ -41,6 +28,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Getter
 @Setter
@@ -84,11 +72,11 @@ public class Profile implements UserDetails {
     private String username;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Postagem> postagens = new ArrayList<>();
 
     @JsonIgnore
-    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference("comment-author")
     private List<Comentario> comentarios = new ArrayList<>();
 
@@ -140,7 +128,23 @@ public class Profile implements UserDetails {
     @OneToMany(mappedBy = "userTo", cascade = CascadeType.ALL)
     private Set<Friendship> receivedFriendRequests = new HashSet<>();
 
+    @PrePersist
+    public void ensureFriendNumber() {
+        if (this.friendNumber == null) {
+            long candidate;
+            do {
+                candidate = ThreadLocalRandom.current()
+                        .nextLong(1, Long.MAX_VALUE);
+                // Aqui você poderia checar no banco para evitar colisão,
+                // mas em testes simples normalmente não será um problema.
+            } while (candidate <= 0);
+            this.friendNumber = candidate;
+        }
+    }
+
+
     public Profile() {}
+
 
     public Profile(UUID id, String username) {
         this.id = id;

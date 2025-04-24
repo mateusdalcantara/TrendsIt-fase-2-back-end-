@@ -48,4 +48,12 @@ public interface FriendshipRepository extends JpaRepository<Friendship, Long> {
     List<Friendship> findByUserFromIdAndStatus(UUID userId, Friendship.Status status);
     List<Friendship> findAllByUserFromAndStatus(Profile from, Friendship.Status status);
     List<Friendship> findAllByUserToAndStatus(Profile to,   Friendship.Status status);
+    @Modifying
+    @Query("DELETE FROM Friendship f WHERE f.userFrom = :profile OR f.userTo = :profile")
+    void deleteByUserFromOrUserTo(@Param("profile") Profile profile);
+
+
+    @Modifying
+    @Query("DELETE FROM Friendship f WHERE f.userFrom = :profile OR f.userTo = :profile")
+    void deleteByProfile1OrProfile2(@Param("profile") Profile profile);
 }

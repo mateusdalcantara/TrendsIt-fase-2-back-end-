@@ -1,6 +1,8 @@
 package com.trendsit.trendsit_fase2.repository.comentario;
 
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
+import com.trendsit.trendsit_fase2.model.profile.Profile;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.repository.query.Param;
@@ -21,6 +23,10 @@ public interface ComentarioRepository extends JpaRepository<Comentario, Long> {
 
     @Query("SELECT c FROM Comentario c LEFT JOIN FETCH c.postagem WHERE c.autor.id = :autorId")
     List<Comentario> findByAutorId(@Param("autorId") UUID autorId);
+
+    @Modifying
+    @Query("DELETE FROM Comentario c WHERE c.autor = :autor")
+    void deleteByAutor(@Param("autor") Profile autor);
 
     @Query("""
     SELECT c

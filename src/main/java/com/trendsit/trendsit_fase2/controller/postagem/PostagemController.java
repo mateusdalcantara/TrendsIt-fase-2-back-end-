@@ -61,18 +61,6 @@ public class PostagemController {
         return ResponseEntity.ok(posts);
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<PostagemResponseDTO> getPostById(@PathVariable Long id) {
-        PostagemResponseDTO postagem = postagemService.findPostById(id);
-        return ResponseEntity.ok(postagem);
-    }
-
-    @GetMapping("/{postId}")
-    public ResponseEntity<PostagemResponseDTO> GetIdPOST(@PathVariable Long postId) {
-        Postagem postagem = postagemService.findById(postId)
-                .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
-        return ResponseEntity.ok(new PostagemResponseDTO(postagem));
-    }
 
     // PostagemController.java
     @PutMapping("/{postId}")

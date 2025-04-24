@@ -9,12 +9,22 @@ import com.trendsit.trendsit_fase2.model.diretorio.Diretorio;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.comentario.ComentarioRepository;
+import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
+import com.trendsit.trendsit_fase2.repository.group.GroupInvitationRepository;
+import com.trendsit.trendsit_fase2.repository.notification.NotificationRepository;
 import com.trendsit.trendsit_fase2.repository.postagem.PostagemRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
+import com.trendsit.trendsit_fase2.repository.relationship.FriendshipRepository;
+import com.trendsit.trendsit_fase2.repository.vaga.VagaRepository;
+import com.trendsit.trendsit_fase2.service.group.GroupService;
 import com.trendsit.trendsit_fase2.service.notification.NotificationService;
+import com.trendsit.trendsit_fase2.service.postagem.PostagemService;
+import com.trendsit.trendsit_fase2.service.relationship.FollowService;
 import com.trendsit.trendsit_fase2.service.relationship.FriendNumberService;
+import com.trendsit.trendsit_fase2.service.relationship.FriendshipService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,21 +40,38 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final FriendNumberService friendNumberService;
     private final ComentarioRepository comentarioRepository;
+    private final NotificationRepository notificationRepository;
     private final NotificationService notificationService;
-
+    private final FriendshipService friendshipService;
+    private final FollowService followService;
+    private final GroupInvitationRepository groupInvitationRepository;
+    private final FriendshipRepository friendshipRepository;
+    private final GroupService groupService;
+    private final VagaRepository vagaRepository;
+    private final EventoRepository eventoRepository;
+    private final PostagemService postagemService;
     // Injeção via construtor
     @Autowired
     public ProfileServiceImpl(
             DiretorioRepository diretorioRepository, PostagemRepository postagemRepository,
             ProfileRepository profileRepository,
-            FriendNumberService friendNumberService, ComentarioRepository comentarioRepository, NotificationService notificationService
+            FriendNumberService friendNumberService, ComentarioRepository comentarioRepository, NotificationRepository notificationRepository, NotificationService notificationService, FriendshipService friendshipService, FollowService followService, GroupInvitationRepository groupInvitationRepository, FriendshipRepository friendshipRepository, GroupService groupService, VagaRepository vagaRepository, EventoRepository eventoRepository, @Lazy PostagemService postagemService
     ) {
         this.diretorioRepository = diretorioRepository;
         this.postagemRepository = postagemRepository;
         this.profileRepository = profileRepository;
         this.friendNumberService = friendNumberService;
         this.comentarioRepository = comentarioRepository;
+        this.notificationRepository = notificationRepository;
         this.notificationService = notificationService;
+        this.friendshipService = friendshipService;
+        this.followService = followService;
+        this.groupInvitationRepository = groupInvitationRepository;
+        this.friendshipRepository = friendshipRepository;
+        this.groupService = groupService;
+        this.vagaRepository = vagaRepository;
+        this.eventoRepository = eventoRepository;
+        this.postagemService = postagemService;
     }
 
     @Transactional
@@ -137,15 +164,17 @@ public class ProfileServiceImpl implements ProfileService {
 
 
     @Override
-    @Transactional
-    public void deleteProfile(UUID profileId) {
-        Profile profile = profileRepository.findById(profileId)
+    public void deleteProfile(UUID userId) {
+        Profile profile = profileRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
-        // Exclui notificações primeiro!
-        notificationService.deleteNotificationsByRecipient(profile);
+        // Deleta posts associados
+        postagemService.deleteAllByAutor(profile);
 
-        // Exclui o perfil após limpar as dependências
+        // Deleta notificações relacionadas
+        notificationService.deleteAllByProfile(profile);
+
+        // Deleta o perfil
         profileRepository.delete(profile);
     }
 

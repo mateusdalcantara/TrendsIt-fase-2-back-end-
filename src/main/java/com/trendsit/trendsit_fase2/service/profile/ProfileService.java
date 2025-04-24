@@ -17,37 +17,21 @@ import java.util.UUID;
 public interface ProfileService {
 
     List<String> obterCaminhoMaisCurto(UUID origemId, UUID destinoId);
-
     Optional<Profile> findById(UUID id);
-
     boolean existsById(UUID id);
-
     void createDefaultProfile(UUID userId);
-
     Profile createProfile(UUID userId, String username);
-
     Profile criarPerfil(ProfileRequestDTO request);
-
     Optional<AuthProfileDTO> findAuthProfileById(UUID userId);
-
     Profile updateProfile(UUID profileId, ProfileRequestDTO request);
-
-    void deleteProfile(UUID profileId);
-
+    void deleteProfile(UUID userId);
     ProfileRequestDTO convertToDto(Profile profile);
-
     List<ProfileRequestDTO> findAllProfiles();
-
     List<ProfileAdminDTO> findAllForAdmin();
-
     List<ProfilePublicoDTO> findAllPublicoProfiles();
-
     List<DiretorioDTO> findAllDiretorio();
-
     Profile atualizarPerfilAdmin(UUID userId, ProfileAdminUpdateDTO dto);
-
     Profile updateUserProfileAdmin(UUID userId, ProfileRequestDTO request);
-
     Optional<Profile> findByUsername(String username);
 
 }

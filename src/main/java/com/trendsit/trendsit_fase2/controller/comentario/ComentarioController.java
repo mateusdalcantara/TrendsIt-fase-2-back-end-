@@ -3,6 +3,7 @@ package com.trendsit.trendsit_fase2.controller.comentario;
 import com.trendsit.trendsit_fase2.dto.comentario.ComentarioCreateDTO;
 import com.trendsit.trendsit_fase2.dto.comentario.ComentarioDTO;
 import com.trendsit.trendsit_fase2.dto.comentario.ComentarioResponseDTO;
+import com.trendsit.trendsit_fase2.dto.comentario.ComentarioUpdateDTO;
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.service.comentario.ComentarioService;
@@ -50,19 +51,19 @@ public class ComentarioController {
 
     @PutMapping("/{commentId}")
     @PreAuthorize("hasAnyRole('ALUNO', 'ADMIN')")
-    public ResponseEntity<Comentario> atualizarComentario(
-            @PathVariable Long postId,
-            @PathVariable Long commentId,
-            @Valid @RequestBody ComentarioDTO comentarioDto,
-            @AuthenticationPrincipal Profile profile
+    public ResponseEntity<ComentarioResponseDTO> atualizarComentario( // Alterado para retornar o DTO
+                                                                      @PathVariable Long postId,
+                                                                      @PathVariable Long commentId,
+                                                                      @Valid @RequestBody ComentarioUpdateDTO comentarioUpdateDto,
+                                                                      @AuthenticationPrincipal Profile profile
     ) {
         Comentario comentarioAtualizado = comentarioService.updateComentario(
                 commentId,
                 postId,
-                comentarioDto,
+                comentarioUpdateDto,
                 profile.getId()
         );
-        return ResponseEntity.ok(comentarioAtualizado);
+        return ResponseEntity.ok(new ComentarioResponseDTO(comentarioAtualizado)); // Convertendo para DTO
     }
 
     @DeleteMapping("/{commentId}")

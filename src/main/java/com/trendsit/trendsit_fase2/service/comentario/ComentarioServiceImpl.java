@@ -1,7 +1,7 @@
 package com.trendsit.trendsit_fase2.service.comentario;
 
-import com.trendsit.trendsit_fase2.dto.comentario.ComentarioDTO;
 import com.trendsit.trendsit_fase2.dto.comentario.ComentarioResponseDTO;
+import com.trendsit.trendsit_fase2.dto.comentario.ComentarioUpdateDTO;
 import com.trendsit.trendsit_fase2.model.comentario.Comentario;
 import com.trendsit.trendsit_fase2.model.postagem.Postagem;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
@@ -97,7 +97,12 @@ public class ComentarioServiceImpl implements ComentarioService {
     }
 
     @Override
-    public Comentario updateComentario(Long comentarioId, Long postId, ComentarioDTO comentarioDTO, UUID currentUserId) {
+    public Comentario updateComentario(
+            Long comentarioId,
+            Long postId,
+            ComentarioUpdateDTO comentarioUpdateDTO, // Alterado o tipo do DTO
+            UUID currentUserId
+    ) {
         Comentario comentario = comentarioRepository.findById(comentarioId)
                 .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
 
@@ -109,7 +114,9 @@ public class ComentarioServiceImpl implements ComentarioService {
             throw new AccessDeniedException("Acesso negado");
         }
 
-        comentario.setConteudo(comentarioDTO.getConteudo());
+        // Atualiza apenas o conteúdo do DTO específico
+        comentario.setConteudo(comentarioUpdateDTO.getConteudo());
+
         return comentarioRepository.save(comentario);
     }
 

@@ -20,4 +20,5 @@ public class ComentarioDTO {
         this.createdAt = createdAt;
         this.postagemId = postagemId;
     }
+
 }

@@ -1,6 +1,9 @@
 package com.trendsit.trendsit_fase2.service.relationship; // Fix package name typo
 
 import com.trendsit.trendsit_fase2.model.profile.Profile;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,4 +16,7 @@ public interface FollowService {
     List<Profile> getFollowers(UUID userId);
     void followUserByFriendNumber(UUID id, Long targetFriendNumber);
     void unfollowUserByFriendNumber(UUID id, Long targetFriendNumber);
+
+
+    void removeAllFollowRelations(Profile profile);
 }

@@ -52,10 +52,9 @@ public class GroupPostagemEComentarioController {
         return ResponseEntity.noContent().build();
     }
 
-    @DeleteMapping("/{postId}/comments/{commentId}")
+    @DeleteMapping("/posts/{postId}/comments/{commentId}")
     @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
     public ResponseEntity<Void> deleteComment(
-            @PathVariable UUID groupId,
             @PathVariable UUID postId,
             @PathVariable UUID commentId,
             @AuthenticationPrincipal Profile currentUser
@@ -64,7 +63,7 @@ public class GroupPostagemEComentarioController {
         return ResponseEntity.noContent().build();
     }
 
-    @PutMapping("/{postId}")
+    @PutMapping("/update-post/{postId}")
     @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
     public ResponseEntity<GroupPostDTO> updatePost(
             @PathVariable UUID groupId,
@@ -77,22 +76,19 @@ public class GroupPostagemEComentarioController {
     }
 
     // GroupPostagemEComentarioController.java
-
-    @PutMapping("/{postId}/comments/{commentId}")
+    @PutMapping("/posts/{postId}/comments/{commentId}") // Nova URL simplificada
     @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
     public ResponseEntity<GroupPostCommentResponseDTO> updateComment(
-            @PathVariable UUID groupId,
-            @PathVariable UUID postId,
-            @PathVariable UUID commentId,
+            @PathVariable UUID postId,      // Mantido
+            @PathVariable UUID commentId,   // Mantido
             @RequestBody @Valid GroupPostCommentRequestDTO request,
             @AuthenticationPrincipal Profile currentUser
     ) {
         GroupPostComment updatedComment = postService.updateComment(
-                groupId,
-                postId,
-                commentId,
-                request.getContent(),
-                currentUser
+                postId,          // Primeiro parâmetro
+                commentId,       // Segundo parâmetro
+                request.getContent(), // Terceiro parâmetro
+                currentUser       // Quarto parâmetro
         );
         return ResponseEntity.ok(new GroupPostCommentResponseDTO(updatedComment));
     }

@@ -99,8 +99,18 @@ public class GroupService {
     }
 
     /** Edita o nome do grupo. */
-    public GroupDTO editarGrupo(UUID id, CreateGroupRequest request) {
-        Group group = getGroupWithMembers(id);
+    public GroupDTO editarGrupo(UUID id, CreateGroupRequest request, Profile currentUser) {
+        Group group = groupRepository.findByIdWithCreator(id) // Carrega o criador
+                .orElseThrow(() -> new EntityNotFoundException("Grupo não encontrado"));
+
+        // Verifica se é o criador ou admin
+        boolean isCreator = group.getCriador().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == ProfileRole.ADMIN;
+
+        if (!isCreator && !isAdmin) {
+            throw new AccessDeniedException("Apenas o criador ou administradores podem editar o grupo");
+        }
+
         group.setNome(request.getNome());
         return new GroupDTO(groupRepository.save(group));
     }
@@ -167,30 +177,70 @@ public class GroupService {
         notificationService.deleteGroupInviteNotification(invitation);
     }
 
-    /** Recusa convite (marca como declined). */
-    public void recusarConvite(UUID groupId, UUID userId) {
-        Group group = getGroupWithMembers(groupId);
-        Profile invited = profileRepository.findById(userId)
+    @Transactional
+    public void recusarConvite(UUID groupId, UUID userId, Profile currentUser) {
+        // Busca o grupo e verifica existência
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Grupo não encontrado"));
+
+        // Verifica se o usuário alvo existe
+        Profile invitedUser = profileRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
 
-        var convite = groupInvitationRepository.findByGroupAndInvited(group, invited)
-                .orElseThrow(() -> new EntityNotFoundException("Convite para o grupo não encontrado"));
+        // Validação de segurança crítica
+        if (!invitedUser.getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("Apenas o usuário convidado pode recusar este convite");
+        }
 
+        // Busca o convite específico
+        GroupInvitation convite = groupInvitationRepository.findByGroupAndInvited(group, invitedUser)
+                .orElseThrow(() -> new EntityNotFoundException("Convite não encontrado"));
+
+        // Atualização de status + deleção da notificação
         convite.setStatus(GroupInvitation.Status.DECLINED);
         groupInvitationRepository.save(convite);
+
+        notificationService.deleteGroupInviteNotification(convite); // Chamada essencial
     }
 
     /** Remove um membro (somente ADMIN). */
+    @Transactional
     public void removerMembro(UUID groupId, UUID userId, Profile currentUser) {
-        if (currentUser.getRole() != ProfileRole.ADMIN) {
-            throw new AccessDeniedException("Você não tem permissão para remover membros.");
-        }
+        Group group = groupRepository.findByIdWithCreator(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Grupo não encontrado"));
 
-        Group group = getGroupWithMembers(groupId);
         Profile userToRemove = profileRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
 
+        // Verifica se é ADMIN ou criador do grupo
+        boolean isAdmin = currentUser.getRole() == ProfileRole.ADMIN;
+        boolean isCreator = group.getCriador().getId().equals(currentUser.getId());
+
+        if (!isAdmin && !isCreator) {
+            throw new AccessDeniedException("Apenas administradores ou o criador do grupo podem remover membros");
+        }
+
+        // Impede que o criador seja removido
+        if (userToRemove.getId().equals(group.getCriador().getId())) {
+            throw new IllegalArgumentException("O criador do grupo não pode ser removido");
+        }
+
         group.getMembros().remove(userToRemove);
         groupRepository.save(group);
+    }
+
+    @Transactional
+    public void removeProfileFromAllGroups(Profile profile) {
+        groupRepository.removeProfileFromAllGroups(profile);
+        groupRepository.deleteInvitationsByProfile(profile);
+    }
+
+    @Transactional
+    public void deleteGroupsCreatedBy(Profile profile) {
+        List<Group> grupos = groupRepository.findByCriador(profile);
+        for (Group g : grupos) {
+            // aqui você pode reaproveitar a sua lógica de deletar grupo
+            deletarGrupo(g.getId(), profile);
+        }
     }
 }

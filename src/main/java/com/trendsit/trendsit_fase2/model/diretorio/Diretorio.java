@@ -23,8 +23,8 @@ public class Diretorio {
     @JoinColumn(name = "professor_id", nullable = true)
     private Profile primaryProfessor;
 
-    @OneToMany(mappedBy = "diretorio", fetch = FetchType.LAZY)
-    private List<Profile> alunos;
+    @OneToMany(mappedBy = "diretorio", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Profile> alunos = new ArrayList<>();
 
     @Column(name = "titulo_do_curso", nullable = false)
     private String tituloDoCurso;

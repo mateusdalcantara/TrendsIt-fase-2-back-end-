@@ -20,4 +20,5 @@ public interface GroupPostCommentRepository extends JpaRepository<GroupPostComme
             "LEFT JOIN FETCH p.group " +
             "WHERE c.id = :commentId")
     Optional<GroupPostComment> findByIdWithPostAndGroupAndAuthor(UUID commentId);
+
 }

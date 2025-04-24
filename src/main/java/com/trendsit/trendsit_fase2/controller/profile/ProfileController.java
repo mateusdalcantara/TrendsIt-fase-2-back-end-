@@ -92,10 +92,11 @@ public class ProfileController {
         return ResponseEntity.ok(new ProfileAdminDTO(updatedProfile));
     }
 
-    @DeleteMapping("/{profileId}")
+    @DeleteMapping("/admin/{userId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteProfile(@PathVariable UUID profileId) {
-        profileService.deleteProfile(profileId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<String> deletarPerfil(@PathVariable UUID userId) {
+        profileService.deleteProfile(userId);
+        return ResponseEntity.ok("Perfil deletado com sucesso");
     }
 }
+

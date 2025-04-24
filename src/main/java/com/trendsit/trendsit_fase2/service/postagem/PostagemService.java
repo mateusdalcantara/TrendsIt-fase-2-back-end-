@@ -56,4 +56,5 @@ public interface PostagemService {
 
     PostagemResponseDTO findPostById(Long id);
 
+    void deleteAllByAutor(Profile author);
 }

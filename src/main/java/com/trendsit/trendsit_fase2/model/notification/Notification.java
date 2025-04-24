@@ -31,6 +31,7 @@ public class Notification {
     @JoinColumn(name = "recipient_id")
     private Profile recipient;
 
+
     private String type; // Ex: VACANCY_REJECTED
     private String message;
     private LocalDateTime createdAt;

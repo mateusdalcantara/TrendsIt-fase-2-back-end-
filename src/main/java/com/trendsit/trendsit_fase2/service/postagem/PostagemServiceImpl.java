@@ -13,6 +13,7 @@ import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import com.trendsit.trendsit_fase2.service.profile.ProfileService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,12 +31,17 @@ public class PostagemServiceImpl implements PostagemService {
     @Autowired
     public PostagemServiceImpl(
             PostagemRepository postagemRepository,
-            ProfileRepository profileRepository, // Add this
+            ProfileRepository profileRepository,
             ProfileService profileService
     ) {
         this.postagemRepository = postagemRepository;
         this.profileRepository = profileRepository;
         this.profileService = profileService;
+    }
+
+    @Override
+    public void deleteAllByAutor(Profile autor) {
+        postagemRepository.deleteByAutor(autor);
     }
 
     @Override

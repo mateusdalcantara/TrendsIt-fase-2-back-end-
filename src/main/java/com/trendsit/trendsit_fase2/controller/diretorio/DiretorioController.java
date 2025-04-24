@@ -5,6 +5,7 @@ import com.trendsit.trendsit_fase2.dto.profile.ProfileResponseDTO;
 import com.trendsit.trendsit_fase2.exception.EntityNotFoundException;
 import com.trendsit.trendsit_fase2.model.diretorio.Diretorio;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
+import com.trendsit.trendsit_fase2.repository.diretorio.DiretorioRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import com.trendsit.trendsit_fase2.service.diretorio.DiretorioServiceImpl;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,12 +25,22 @@ import java.util.UUID;
 public class DiretorioController {
     private final DiretorioServiceImpl diretorioService;
     private final ProfileRepository profileRepository;
-
+    private final DiretorioRepository diretorioRepository;
 
     @GetMapping("/obterdiretorio")
     @PreAuthorize("hasAnyRole('PROFESSOR', 'ADMIN')")
     public ResponseEntity<List<DiretorioDTO>> findAllDiretorio() {
         return ResponseEntity.ok(diretorioService.findAllDiretorio());
+    }
+
+    @GetMapping("/listar-professores")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ProfileResponseDTO>> listarTodosProfessores() {
+        List<Profile> professores = diretorioService.findAllProfessores();
+        List<ProfileResponseDTO> dtos = professores.stream()
+                .map(ProfileResponseDTO::new)
+                .toList();
+        return ResponseEntity.ok(dtos);
     }
 
     @PostMapping
@@ -84,16 +96,6 @@ public class DiretorioController {
         return ResponseEntity.ok().build();
     }
 
-    @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> deleteDiretorio(@PathVariable Long id) {
-        try {
-            diretorioService.deleteDiretorio(id);
-            return ResponseEntity.noContent().build();
-        } catch (EntityNotFoundException ex) {
-            return ResponseEntity.notFound().build();
-        }
-    }
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
@@ -108,6 +110,17 @@ public class DiretorioController {
             return ResponseEntity.notFound().build();
         } catch (IllegalArgumentException ex) {
             return ResponseEntity.badRequest().body(ex.getMessage());
+        }
+    }
+
+    @DeleteMapping("/deletar-diretorio/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> deleteDiretorio(@PathVariable Long id) {
+        try {
+            diretorioService.deleteDiretorio(id);
+            return ResponseEntity.noContent().build();
+        } catch (EntityNotFoundException ex) {
+            return ResponseEntity.notFound().build();
         }
     }
 

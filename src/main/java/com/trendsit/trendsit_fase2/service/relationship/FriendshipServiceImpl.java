@@ -3,6 +3,11 @@ package com.trendsit.trendsit_fase2.service.relationship;
 import com.trendsit.trendsit_fase2.exception.ConflictException;
 import com.trendsit.trendsit_fase2.model.friendship.Friendship;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
+import com.trendsit.trendsit_fase2.repository.comentario.ComentarioRepository;
+import com.trendsit.trendsit_fase2.repository.diretorio.DiretorioRepository;
+import com.trendsit.trendsit_fase2.repository.group.GroupInvitationRepository;
+import com.trendsit.trendsit_fase2.repository.notification.NotificationRepository;
+import com.trendsit.trendsit_fase2.repository.postagem.PostagemRepository;
 import com.trendsit.trendsit_fase2.repository.relationship.FriendshipRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -20,13 +25,25 @@ import java.util.stream.Stream;
 public class FriendshipServiceImpl implements FriendshipService {
     private final FriendshipRepository friendshipRepository;
     private final ProfileRepository profileRepository;
+    private final NotificationRepository notificationRepository;
+    private final PostagemRepository postagemRepository;
+    private final ComentarioRepository comentarioRepository;
+    private final DiretorioRepository diretorioRepository;
+    private final GroupInvitationRepository groupInvitationRepository;
+    private final FollowService followService;
 
     public FriendshipServiceImpl(
             FriendshipRepository friendshipRepository,
-            ProfileRepository profileRepository
+            ProfileRepository profileRepository, NotificationRepository notificationRepository, PostagemRepository postagemRepository, ComentarioRepository comentarioRepository, DiretorioRepository diretorioRepository, GroupInvitationRepository groupInvitationRepository, FollowService followService
     ) {
         this.friendshipRepository = friendshipRepository;
         this.profileRepository = profileRepository;
+        this.notificationRepository = notificationRepository;
+        this.postagemRepository = postagemRepository;
+        this.comentarioRepository = comentarioRepository;
+        this.diretorioRepository = diretorioRepository;
+        this.groupInvitationRepository = groupInvitationRepository;
+        this.followService = followService;
     }
 
     @Override
@@ -163,6 +180,12 @@ public class FriendshipServiceImpl implements FriendshipService {
     }
 
     @Override
+    @Transactional
+    public void removeAllFriendships(Profile profile) {
+        friendshipRepository.deleteByUserFromOrUserTo(profile);
+    }
+
+    @Override
     public void removeFriend(UUID userId, Long friendNumber) {
         Profile user = profileRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -185,6 +208,39 @@ public class FriendshipServiceImpl implements FriendshipService {
 
         // Delete the friendship
         friendshipRepository.deleteFriendshipBetweenUsers(user.getId(), friend.getId());
+    }
+
+    @Transactional
+    @Override
+    public void deleteProfile(UUID profileId) {
+        Profile profile = profileRepository.findById(profileId)
+                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
+
+        // 1) Notificações
+        notificationRepository.deleteByInvitationInvited(profile);
+        notificationRepository.deleteByGroupCriador(profile);
+        notificationRepository.deleteByRecipient(profile);
+
+        // 2) Solicitações de amizade / relacionamentos
+        friendshipRepository.deleteByUserFromOrUserTo(profile);
+
+        // 3) “Follows”
+        followService.removeAllFollowRelations(profile);
+
+        // 4) Postagens e comentários
+        postagemRepository.deleteByAutor(profile);
+        comentarioRepository.deleteByAutor(profile);
+
+        // 5) Diretório (tira o aluno/professor dos diretórios)
+        diretorioRepository.removeProfileFromAllDiretorios(profile);
+
+        // 6) Convites de grupo
+        groupInvitationRepository.deleteByInvited(profile);
+
+        // 7) Outros: vagas, eventos etc (use seus repositórios / serviços)
+
+        // Finalmente, apaga o próprio perfil
+        profileRepository.delete(profile);
     }
 
 }
