@@ -135,6 +135,7 @@ public class ProfileServiceImpl implements ProfileService {
         return profileRepository.save(profile);
     }
 
+
     @Override
     @Transactional
     public void deleteProfile(UUID profileId) {
@@ -194,22 +195,10 @@ public class ProfileServiceImpl implements ProfileService {
         Profile profile = profileRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
 
-        // Atualiza campos existentes
+        // Update only the allowed fields
         profile.setUsername(dto.getUsername());
         profile.setIdade(dto.getIdade());
-        profile.setCurso(dto.getCurso());
         profile.setRole(dto.getRole());
-
-        // Atualiza o diretório (se fornecido)
-        if (dto.getDiretorioId() != null) {
-            Diretorio diretorio = diretorioRepository.findById(dto.getDiretorioId())
-                    .orElseThrow(() -> new EntityNotFoundException("Diretório não encontrado"));
-            profile.setDiretorio(diretorio);
-            profile.setDiretorioNome(diretorio.getTituloDoCurso()); // Define o nome do diretório
-        } else {
-            profile.setDiretorio(null);
-            profile.setDiretorioNome(null);
-        }
 
         return profileRepository.save(profile);
     }

@@ -1,6 +1,7 @@
 package com.trendsit.trendsit_fase2.controller.notification;
 
 import com.trendsit.trendsit_fase2.dto.evento.EventNotificationDTO;
+import com.trendsit.trendsit_fase2.dto.group.GroupInviteNotificationDTO;
 import com.trendsit.trendsit_fase2.dto.notification.VacancyNotificationDTO;
 import com.trendsit.trendsit_fase2.dto.relationship.FollowerDTO;
 import com.trendsit.trendsit_fase2.dto.relationship.FriendRequestDTO;
@@ -97,13 +98,28 @@ public class NotificationController {
                 ))
                 .toList();
 
+        List<Notification> inviteNotifications = notificationRepository.findByRecipientAndTypeIn(
+                currentUser,
+                List.of("GROUP_INVITE")
+        );
+        List<GroupInviteNotificationDTO> inviteDTOs = inviteNotifications.stream()
+                .map(n -> new GroupInviteNotificationDTO(
+                        n.getInvitation().getId(),
+                        n.getGroup().getId(),
+                        n.getGroup().getNome(),
+                        n.getMessage().split(" por ")[1].replace(".", ""),
+                        n.getCreatedAt()
+                ))
+                .toList();
+
         return ResponseEntity.ok(
                 new RelationshipNotificationsDTO(
                         receivedDTOs,
                         sentDTOs,
                         followerDTOs,
                         vacancyDTOs,  // Notificações de vagas
-                        eventDTOs     // Novo: notificações de eventos
+                        eventDTOs,
+                        inviteDTOs // Novo: notificações de eventos
                 )
         );
     }

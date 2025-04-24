@@ -1,17 +1,27 @@
 package com.trendsit.trendsit_fase2.service.group;
 
 import com.trendsit.trendsit_fase2.dto.group.GroupPostCommentRequestDTO;
+import com.trendsit.trendsit_fase2.dto.group.GroupPostCommentResponseDTO;
 import com.trendsit.trendsit_fase2.dto.group.GroupPostRequestDTO;
 import com.trendsit.trendsit_fase2.exception.EntityNotFoundException;
 import com.trendsit.trendsit_fase2.model.group.Group;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
+import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.group.GroupPostCommentRepository;
 import com.trendsit.trendsit_fase2.repository.group.GroupPostRepository;
 import com.trendsit.trendsit_fase2.repository.group.GroupRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +33,7 @@ public class GroupPostService {
     private final GroupPostRepository postRepository;
     private final GroupPostCommentRepository commentRepository;
     private final GroupService groupService;
+
 
     // Criar postagem (somente membros)
     public GroupPost createPost(UUID groupId, GroupPostRequestDTO request, Profile author) {
@@ -71,4 +82,93 @@ public class GroupPostService {
 
         return postRepository.findByGroupIdWithComments(groupId);
     }
+
+    @Transactional
+    public void deletePost(UUID postId, Profile currentUser) {
+        GroupPost post = postRepository.findByIdWithAuthor(postId)
+                .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
+
+        boolean isOwner = post.getAuthor().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == ProfileRole.ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("Somente o autor ou administradores podem excluir esta postagem");
+        }
+
+        postRepository.delete(post);
+    }
+
+    @Transactional
+    public void deleteComment(UUID commentId, Profile currentUser) {
+        GroupPostComment comment = commentRepository.findByIdWithAuthor(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
+
+        boolean isOwner = comment.getAuthor().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == ProfileRole.ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("Somente o autor ou administradores podem excluir este comentário");
+        }
+
+        commentRepository.delete(comment);
+    }
+
+    @Transactional
+    public GroupPost updatePost(UUID groupId, UUID postId, String newContent, Profile currentUser) {
+        // Busca postagem com relacionamentos necessários
+        GroupPost post = postRepository.findByIdWithGroupAndAuthor(postId)
+                .orElseThrow(() -> new EntityNotFoundException("Postagem não encontrada"));
+
+        // Verifica se a postagem pertence ao grupo
+        if (!post.getGroup().getId().equals(groupId)) {
+            throw new EntityNotFoundException("Postagem não encontrada neste grupo");
+        }
+
+        // Verifica permissões
+        boolean isOwner = post.getAuthor().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == ProfileRole.ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("Somente o autor ou administradores podem editar esta postagem");
+        }
+
+        // Atualiza conteúdo
+        post.setContent(newContent);
+        return postRepository.save(post);
+    }
+
+    @Transactional
+    public GroupPostComment updateComment(
+            UUID groupId,
+            UUID postId,
+            UUID commentId,
+            String newContent,
+            Profile currentUser
+    ) {
+        // Busca comentário com todos os relacionamentos necessários
+        GroupPostComment comment = commentRepository.findByIdWithPostAndGroupAndAuthor(commentId)
+                .orElseThrow(() -> new EntityNotFoundException("Comentário não encontrado"));
+
+        // Verifica hierarquia (grupo -> post -> comentário)
+        if (!comment.getPost().getId().equals(postId)) {
+            throw new EntityNotFoundException("Comentário não pertence à postagem");
+        }
+
+        if (!comment.getPost().getGroup().getId().equals(groupId)) {
+            throw new EntityNotFoundException("Postagem não pertence ao grupo");
+        }
+
+        // Verifica permissões
+        boolean isOwner = comment.getAuthor().getId().equals(currentUser.getId());
+        boolean isAdmin = currentUser.getRole() == ProfileRole.ADMIN;
+
+        if (!isOwner && !isAdmin) {
+            throw new AccessDeniedException("Somente o autor ou administradores podem editar este comentário");
+        }
+
+        // Atualiza conteúdo
+        comment.setContent(newContent);
+        return commentRepository.save(comment);
+    }
+
 }

@@ -89,41 +89,34 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
-    public void inviteUserToGroup(UUID groupId, UUID invitedUserId, Profile currentUser) {
-        // Verificar se o usuário atual tem permissão para convidar
-        if (!currentUser.getRole().equals(ProfileRole.ALUNO)
-                && !currentUser.getRole().equals(ProfileRole.PROFESSOR)
-                && !currentUser.getRole().equals(ProfileRole.ADMIN)) {
-            throw new AccessDeniedException("Permissão negada");
-        }
-
-        Group group = groupRepository.findById(groupId)
-                .orElseThrow(() -> new EntityNotFoundException("Grupo não encontrado"));
-
-        Profile invitedUser = (Profile) profileRepository.findById(invitedUserId)
-                .orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado"));
-
-        // Verificar se o usuário convidado já é membro do grupo
-        if (group.getMembros().contains(invitedUser)) {
-            throw new AccessDeniedException("Este usuário já é membro do grupo.");
-        }
-
-        // Criar convite
-        GroupInvitation invitation = new GroupInvitation();
-        invitation.setGroup(group);
-        invitation.setInvited(invitedUser);
-        invitation.setStatus(GroupInvitation.Status.PENDING); // Status pendente
-        groupInvitationRepository.save(invitation);
-    }
-
-    @PostMapping("/{groupId}/convite/{conviteId}/aceitar")
-    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
-    public ResponseEntity<Void> aceitarConvite(
+    @PostMapping("/{groupId}/invite/{friendNumber}")
+    @PreAuthorize("hasAnyRole('ALUNO','PROFESSOR','ADMIN')")
+    public ResponseEntity<Void> inviteUserToGroup(
             @PathVariable UUID groupId,
-            @PathVariable UUID conviteId,
+            @PathVariable Long friendNumber,
             @AuthenticationPrincipal Profile currentUser
     ) {
-        groupService.aceitarConvite(conviteId, currentUser);
+        groupService.inviteUserToGroup(groupId, friendNumber, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @PostMapping("/{groupId}/convite/aceitar")
+    @PreAuthorize("hasAnyRole('ALUNO','PROFESSOR','ADMIN')")
+    public ResponseEntity<Void> aceitarConvite(
+            @PathVariable UUID groupId,
+            @AuthenticationPrincipal Profile currentUser
+    ) {
+        groupService.aceitarConvite(groupId, currentUser);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/invitations/{invitationId}/accept")
+    @PreAuthorize("hasAnyRole('PROFESSOR', 'ALUNO', 'ADMIN')")
+    public ResponseEntity<Void> aceitarConviteGrupo(
+            @PathVariable UUID invitationId,
+            @AuthenticationPrincipal Profile currentUser) {
+        groupService.aceitarConvite(invitationId, currentUser);
         return ResponseEntity.ok().build();
     }
 

@@ -1,8 +1,10 @@
 package com.trendsit.trendsit_fase2.model.notification;
 
 import com.trendsit.trendsit_fase2.model.evento.Evento;
+import com.trendsit.trendsit_fase2.model.group.Group;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.vaga.Vaga;
+import com.trendsit.trendsit_fase2.service.group.GroupInvitation;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
@@ -35,6 +37,14 @@ public class Notification {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = true)
     @JoinColumn(
+            name = "invitation_id",
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "FK_notification_invitation")
+    )
+    private GroupInvitation invitation;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(
             name = "vacancy_id",             // a coluna na notification
             referencedColumnName = "id",     // a PK da Vaga
             foreignKey = @ForeignKey(name = "FK_notification_vaga")
@@ -44,6 +54,14 @@ public class Notification {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "evento_id")
     private Evento evento; // Relação com Evento
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = true)
+    @JoinColumn(
+            name = "group_id",
+            referencedColumnName = "id",
+            foreignKey = @ForeignKey(name = "FK_notification_group")
+    )
+    private Group group;
 
     private boolean isRead = false;
 }

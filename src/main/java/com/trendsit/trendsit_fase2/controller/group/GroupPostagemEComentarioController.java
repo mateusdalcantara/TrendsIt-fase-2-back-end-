@@ -41,6 +41,62 @@ public class GroupPostagemEComentarioController {
                 .body(new GroupPostDTO(post));
     }
 
+    @DeleteMapping("/{postId}")
+    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
+    public ResponseEntity<Void> deletePost(
+            @PathVariable UUID groupId,
+            @PathVariable UUID postId,
+            @AuthenticationPrincipal Profile currentUser
+    ) {
+        postService.deletePost(postId, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{postId}/comments/{commentId}")
+    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
+    public ResponseEntity<Void> deleteComment(
+            @PathVariable UUID groupId,
+            @PathVariable UUID postId,
+            @PathVariable UUID commentId,
+            @AuthenticationPrincipal Profile currentUser
+    ) {
+        postService.deleteComment(commentId, currentUser);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{postId}")
+    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
+    public ResponseEntity<GroupPostDTO> updatePost(
+            @PathVariable UUID groupId,
+            @PathVariable UUID postId,
+            @RequestBody @Valid GroupPostRequestDTO request,
+            @AuthenticationPrincipal Profile currentUser
+    ) {
+        GroupPost updatedPost = postService.updatePost(groupId, postId, request.getContent(), currentUser);
+        return ResponseEntity.ok(new GroupPostDTO(updatedPost));
+    }
+
+    // GroupPostagemEComentarioController.java
+
+    @PutMapping("/{postId}/comments/{commentId}")
+    @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")
+    public ResponseEntity<GroupPostCommentResponseDTO> updateComment(
+            @PathVariable UUID groupId,
+            @PathVariable UUID postId,
+            @PathVariable UUID commentId,
+            @RequestBody @Valid GroupPostCommentRequestDTO request,
+            @AuthenticationPrincipal Profile currentUser
+    ) {
+        GroupPostComment updatedComment = postService.updateComment(
+                groupId,
+                postId,
+                commentId,
+                request.getContent(),
+                currentUser
+        );
+        return ResponseEntity.ok(new GroupPostCommentResponseDTO(updatedComment));
+    }
+
     // Criar comentário
     @PostMapping("/{postId}/comments")
     @PreAuthorize("hasAnyRole('ALUNO', 'PROFESSOR', 'ADMIN')")

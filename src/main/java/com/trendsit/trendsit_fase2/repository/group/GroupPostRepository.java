@@ -25,5 +25,14 @@ public interface GroupPostRepository extends JpaRepository<GroupPost, UUID> {
             "LEFT JOIN FETCH p.comments " +  // Carrega os comentários
             "WHERE p.group.id = :groupId")
     List<GroupPost> findByGroupIdWithComments(@Param("groupId") UUID groupId);
+
+    @Query("SELECT p FROM GroupPost p LEFT JOIN FETCH p.author WHERE p.id = :postId")
+    Optional<GroupPost> findByIdWithAuthor(UUID postId);
+
+    @Query("SELECT p FROM GroupPost p " +
+            "LEFT JOIN FETCH p.author " +
+            "LEFT JOIN FETCH p.group " +
+            "WHERE p.id = :postId")
+    Optional<GroupPost> findByIdWithGroupAndAuthor(UUID postId);
 }
 

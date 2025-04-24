@@ -1,6 +1,7 @@
 package com.trendsit.trendsit_fase2.repository.notification;
 
 import com.trendsit.trendsit_fase2.model.evento.Evento;
+import com.trendsit.trendsit_fase2.model.group.Group;
 import com.trendsit.trendsit_fase2.model.notification.Notification;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.vaga.Vaga;
@@ -13,6 +14,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     void deleteByEvento(Evento evento);
     void deleteByVaga(Vaga vaga);
     void deleteByRecipient(Profile recipient);
+    void deleteByGroup(Group group);
     List<Notification> findByRecipientAndTypeIn(Profile recipient, List<String> types);
     List<Notification> findByRecipientAndType(Profile currentUser, String vacancyRejected);
+
+    void deleteByGroupAndRecipientAndType(Group group, Profile invited, String groupInvite);
 }

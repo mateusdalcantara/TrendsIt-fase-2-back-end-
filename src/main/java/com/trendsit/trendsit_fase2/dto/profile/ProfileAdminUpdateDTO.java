@@ -11,7 +11,5 @@ public class ProfileAdminUpdateDTO {
     @NotBlank(message = "Username é obrigatório")
     private String username;
     private Integer idade;
-    private Long diretorioId;
-    private String curso;
     private ProfileRole role;
 }

@@ -1,11 +1,13 @@
 package com.trendsit.trendsit_fase2.service.notification;
 
 import com.trendsit.trendsit_fase2.model.evento.Evento;
+import com.trendsit.trendsit_fase2.model.group.Group;
 import com.trendsit.trendsit_fase2.model.notification.Notification;
 import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.vaga.Vaga;
 import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
 import com.trendsit.trendsit_fase2.repository.notification.NotificationRepository;
+import com.trendsit.trendsit_fase2.service.group.GroupInvitation;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -25,12 +27,33 @@ public class NotificationService {
         notificationRepository.deleteByEvento(evento);
     }
 
+    public void deleteNotificationsByGroup(Group group) {
+        notificationRepository.deleteByGroup(group);
+    }
+
     public void deleteNotificationsByRecipient(Profile recipient) {
         notificationRepository.deleteByRecipient(recipient);
     }
 
     public void deleteNotificationsByVaga(Vaga vaga) {
         notificationRepository.deleteByVaga(vaga);
+    }
+
+
+    public void createGroupInviteNotification(GroupInvitation invitation) {
+        Notification notification = new Notification();
+        notification.setRecipient(invitation.getInvited());
+        notification.setType("GROUP_INVITE");
+        notification.setMessage(
+                String.format("Você foi convidado para o grupo '%s' por %s.",
+                        invitation.getGroup().getNome(),
+                        invitation.getGroup().getCriador().getUsername()
+                )
+        );
+        notification.setCreatedAt(LocalDateTime.now());
+        notification.setGroup(invitation.getGroup());
+        notification.setInvitation(invitation);
+        notificationRepository.save(notification);
     }
 
     // Método específico para criar notificações de vaga
@@ -61,5 +84,14 @@ public class NotificationService {
         notification.setVaga(null); // Define explicitamente como null
 
         notificationRepository.save(notification);
+    }
+
+    public void deleteGroupInviteNotification(GroupInvitation invitation) {
+        // Deleta notificações do tipo GROUP_INVITE para o grupo e destinatário
+        notificationRepository.deleteByGroupAndRecipientAndType(
+                invitation.getGroup(),
+                invitation.getInvited(),
+                "GROUP_INVITE"
+        );
     }
 }

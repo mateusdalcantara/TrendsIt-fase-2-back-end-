@@ -10,4 +10,12 @@ import java.util.UUID;
 
 public interface GroupInvitationRepository extends JpaRepository<GroupInvitation, UUID> {
     Optional<GroupInvitation> findByGroupAndInvited(Group group, Profile invited);
+
+    void deleteByGroup(Group group);
+
+    Optional<GroupInvitation> findByGroup_IdAndInvited_IdAndStatus(
+            UUID groupId,
+            UUID invitedUserId,
+            GroupInvitation.Status status
+    );
 }
