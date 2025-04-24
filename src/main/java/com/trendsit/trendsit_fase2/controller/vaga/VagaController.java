@@ -80,7 +80,7 @@ public class VagaController {
     public ResponseEntity<VagaResponseAdminDTO> moderarVaga(
             @PathVariable Long id,
             @RequestParam Vaga.Status status,
-            @RequestParam(required = false) String rejectionReason,
+            @RequestParam(required = false) String rejectionReason, // Parâmetro opcional
             @AuthenticationPrincipal Profile admin
     ) {
         return ResponseEntity.ok(

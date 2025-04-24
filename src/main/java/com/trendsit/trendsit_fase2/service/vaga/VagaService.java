@@ -15,6 +15,8 @@ import com.trendsit.trendsit_fase2.service.notification.NotificationService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.util.UUID;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -60,6 +62,7 @@ public class VagaService {
         vaga.setLocal(dto.getLocal());
         vaga.setAutor(autor);
         vaga.setStatus(Vaga.Status.PENDENTE);
+        vaga.setCodigoVaga(gerarCodigoVagaUnico());
 
         return vagaRepository.save(vaga);
     }
@@ -85,26 +88,25 @@ public class VagaService {
     }
 
     // Moderar vaga (apenas admin)
-    public Vaga moderateVaga(Long id, Vaga.Status status, UUID userId) {
-        Vaga vaga = vagaRepository.findById(id)
+    @Transactional
+    public void deleteVagaByCodigo(Long codigoVaga, UUID adminId) {
+        Vaga vaga = vagaRepository.findByCodigoVaga(codigoVaga)
                 .orElseThrow(() -> new EntityNotFoundException("Vaga não encontrada"));
 
-        Profile admin = profileRepository.findById(userId)
+        Profile admin = profileRepository.findById(adminId)
                 .orElseThrow(() -> new EntityNotFoundException("Admin não encontrado"));
 
         if (admin.getRole() != ProfileRole.ADMIN) {
-            throw new AccessDeniedException("Apenas administradores podem moderar vagas");
+            throw new AccessDeniedException("Apenas administradores podem excluir vagas");
         }
 
-        vaga.setStatus(status);
+        // Exclui todas as notificações associadas à vaga
+        notificationService.deleteNotificationsByVaga(vaga); // Nova linha
 
-        // Generate code only when approved
-        if (status == Vaga.Status.APROVADO) {
-            vaga.setCodigoVaga(gerarCodigoVagaUnico());
-        }
-
-        return vagaRepository.save(vaga);
+        vagaRepository.delete(vaga);
     }
+
+
 
     private Long gerarCodigoVagaUnico() {
         Long codigo;
@@ -137,19 +139,6 @@ public class VagaService {
                 .collect(Collectors.toList());
     }
 
-    public void deleteVagaByCodigo(Long codigoVaga, UUID adminId) {
-        Vaga vaga = vagaRepository.findByCodigoVaga(codigoVaga)
-                .orElseThrow(() -> new EntityNotFoundException("Vaga não encontrada"));
-
-        Profile admin = profileRepository.findById(adminId)
-                .orElseThrow(() -> new EntityNotFoundException("Admin não encontrado"));
-
-        if (admin.getRole() != ProfileRole.ADMIN) {
-            throw new AccessDeniedException("Apenas administradores podem excluir vagas");
-        }
-
-        vagaRepository.delete(vaga);
-    }
 
     public Evento updateEventStatus(Long codigoEvento, Evento.Status status) {
         Evento evento = (Evento) eventoRepository.findByCodigoEvento(codigoEvento)
@@ -161,9 +150,17 @@ public class VagaService {
         return eventoRepository.save(evento);
     }
 
+    // No VagaService.java
     public Vaga moderateVaga(Long id, Vaga.Status status, UUID adminId, String rejectionReason) {
         Vaga vaga = vagaRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Vaga não encontrada"));
+
+        Profile admin = profileRepository.findById(adminId)
+                .orElseThrow(() -> new EntityNotFoundException("Admin não encontrado"));
+
+        if (admin.getRole() != ProfileRole.ADMIN) {
+            throw new AccessDeniedException("Apenas administradores podem moderar vagas");
+        }
 
         vaga.setStatus(status);
         Vaga updatedVaga = vagaRepository.save(vaga);
@@ -174,5 +171,4 @@ public class VagaService {
 
         return updatedVaga;
     }
-
 }

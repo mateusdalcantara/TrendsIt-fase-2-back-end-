@@ -2,6 +2,7 @@ package com.trendsit.trendsit_fase2.service.notification;
 
 import com.trendsit.trendsit_fase2.model.evento.Evento;
 import com.trendsit.trendsit_fase2.model.notification.Notification;
+import com.trendsit.trendsit_fase2.model.profile.Profile;
 import com.trendsit.trendsit_fase2.model.vaga.Vaga;
 import com.trendsit.trendsit_fase2.repository.evento.EventoRepository;
 import com.trendsit.trendsit_fase2.repository.notification.NotificationRepository;
@@ -22,6 +23,14 @@ public class NotificationService {
 
     public void deleteNotificationsByEvento(Evento evento) {
         notificationRepository.deleteByEvento(evento);
+    }
+
+    public void deleteNotificationsByRecipient(Profile recipient) {
+        notificationRepository.deleteByRecipient(recipient);
+    }
+
+    public void deleteNotificationsByVaga(Vaga vaga) {
+        notificationRepository.deleteByVaga(vaga);
     }
 
     // Método específico para criar notificações de vaga

@@ -11,6 +11,7 @@ import com.trendsit.trendsit_fase2.model.profile.ProfileRole;
 import com.trendsit.trendsit_fase2.repository.comentario.ComentarioRepository;
 import com.trendsit.trendsit_fase2.repository.postagem.PostagemRepository;
 import com.trendsit.trendsit_fase2.repository.profile.ProfileRepository;
+import com.trendsit.trendsit_fase2.service.notification.NotificationService;
 import com.trendsit.trendsit_fase2.service.relationship.FriendNumberService;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,19 +30,21 @@ public class ProfileServiceImpl implements ProfileService {
     private final ProfileRepository profileRepository;
     private final FriendNumberService friendNumberService;
     private final ComentarioRepository comentarioRepository;
+    private final NotificationService notificationService;
 
     // Injeção via construtor
     @Autowired
     public ProfileServiceImpl(
             DiretorioRepository diretorioRepository, PostagemRepository postagemRepository,
             ProfileRepository profileRepository,
-            FriendNumberService friendNumberService, ComentarioRepository comentarioRepository
+            FriendNumberService friendNumberService, ComentarioRepository comentarioRepository, NotificationService notificationService
     ) {
         this.diretorioRepository = diretorioRepository;
         this.postagemRepository = postagemRepository;
         this.profileRepository = profileRepository;
         this.friendNumberService = friendNumberService;
         this.comentarioRepository = comentarioRepository;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -133,11 +136,16 @@ public class ProfileServiceImpl implements ProfileService {
     }
 
     @Override
+    @Transactional
     public void deleteProfile(UUID profileId) {
-        if (!profileRepository.existsById(profileId)) {
-            throw new EntityNotFoundException("Perfil não encontrado");
-        }
-        profileRepository.deleteById(profileId);
+        Profile profile = profileRepository.findById(profileId)
+                .orElseThrow(() -> new EntityNotFoundException("Perfil não encontrado"));
+
+        // Exclui notificações primeiro!
+        notificationService.deleteNotificationsByRecipient(profile);
+
+        // Exclui o perfil após limpar as dependências
+        profileRepository.delete(profile);
     }
 
     @Override
