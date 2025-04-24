@@ -12,10 +12,15 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
 
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -24,13 +29,22 @@ public class AuthController {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
 
+    @Value("${supabase.url}")
+    private String supabaseUrl;
+
+    @Value("${supabase.key}")
+    private String supabaseKey;
+
     private final ProfileRepository profileRepository;
     private final SupabaseAuthService supabaseAuthService;
+    private final RestTemplate restTemplate;
 
     public AuthController(ProfileRepository profileRepository,
-                          SupabaseAuthService supabaseAuthService) {
+                          SupabaseAuthService supabaseAuthService,
+                          RestTemplate restTemplate) {
         this.profileRepository = profileRepository;
         this.supabaseAuthService = supabaseAuthService;
+        this.restTemplate = restTemplate;
     }
 
     @PostMapping(path = "/register", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -85,6 +99,65 @@ public class AuthController {
                 profile.getRole().name()
         );
         return ResponseEntity.ok(response);
+    }
+    @PostMapping("/forgot-password")
+    public ResponseEntity<?> forgotPassword(@RequestParam String email) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("apikey", supabaseKey);
+
+        String requestBody = String.format("{\"email\":\"%s\", \"type\":\"recovery\"}", email);
+        HttpEntity<String> entity = new HttpEntity<>(requestBody, headers);
+
+        try {
+            ResponseEntity<String> response = restTemplate.postForEntity(
+                    supabaseUrl + "/auth/v1/recover",
+                    entity,
+                    String.class
+            );
+            return ResponseEntity.ok().body(Map.of("message", "Senha nova enviada para o e-mail!"));
+        } catch (Exception e) {
+            logger.error("Erro ao enviar OTP: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Falha ao enviar OTP: " + e.getMessage()));
+        }
+    }
+    @PostMapping("/confirm-reset-password")
+    public ResponseEntity<?> confirmResetPassword(
+            @RequestParam("token") String token,
+            @RequestParam("newPassword") String newPassword
+    ) {
+        // 1) Header com apikey + Bearer token
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("apikey", supabaseKey);
+        headers.setBearerAuth(token);
+
+        // 2) Corpo da requisição
+        HttpEntity<Map<String, String>> body = new HttpEntity<>(
+                Map.of("password", newPassword),
+                headers
+        );
+
+        try {
+            // 3) Chama o Supabase para atualizar a senha do usuário
+            restTemplate.exchange(
+                    supabaseUrl + "/auth/v1/user",
+                    HttpMethod.PUT,
+                    body,
+                    Void.class
+            );
+            return ResponseEntity.ok(Map.of("message", "Senha redefinida com sucesso!"));
+        } catch (HttpClientErrorException.Unauthorized e) {
+            return ResponseEntity
+                    .status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "Token inválido ou expirado"));
+        } catch (Exception e) {
+            logger.error("Erro no confirm-reset-password:", e);
+            return ResponseEntity
+                    .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "Erro interno: " + e.getMessage()));
+        }
     }
 
 }

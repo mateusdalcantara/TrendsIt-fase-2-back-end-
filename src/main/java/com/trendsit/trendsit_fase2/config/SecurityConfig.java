@@ -59,7 +59,10 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/auth/login",
                                 "/auth/register",
-                                "/auth/check-auth"
+                                "/auth/check-auth",
+                                "/auth/forgot-password",
+                                "/auth/confirm-reset-password"
+
                         ).permitAll()
 
                         // GET public resources
